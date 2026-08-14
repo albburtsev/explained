@@ -1,0 +1,62 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { coursePath, lessonPath } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const [courses, lessons] = await Promise.all([getCollection('courses'), getCollection('lessons')]);
+  return lessons.map((lesson) => {
+    const [course, lessonSlug] = lesson.id.split('/');
+    const parent = courses.find((entry) => entry.id === course);
+    if (!course || !lessonSlug || !parent) throw new Error(`Lesson ${lesson.id} has no matching course`);
+    return { params: { course, lesson: lessonSlug }, props: { lesson, course: parent } };
+  });
+}
+
+interface Props {
+  lesson: CollectionEntry<'lessons'>;
+  course: CollectionEntry<'courses'>;
+}
+
+const { lesson, course } = Astro.props;
+const { Content } = await render(lesson);
+const courseLessons = await Promise.all(course.data.lessons.map((reference) => getEntry(reference)));
+const currentIndex = courseLessons.findIndex((entry) => entry.id === lesson.id);
+if (currentIndex === -1) throw new Error(`Lesson ${lesson.id} is not listed by course ${course.id}`);
+const previousLesson = courseLessons[currentIndex - 1];
+const nextLesson = courseLessons[currentIndex + 1];
+const coursesUrl = `${import.meta.env.BASE_URL}courses/`;
+const parentUrl = coursePath(import.meta.env.BASE_URL, course.id);
+---
+
+<BaseLayout title={lesson.data.title} description={lesson.data.description}>
+  <div class="page-shell content-page lesson-page">
+    <Breadcrumbs items={[
+      { label: 'Home', href: import.meta.env.BASE_URL },
+      { label: 'Courses', href: coursesUrl },
+      { label: course.data.title, href: parentUrl },
+      { label: lesson.data.title },
+    ]} />
+    <header class="page-heading lesson-heading">
+      <p class="eyebrow">{course.data.title} · Lesson {currentIndex + 1} of {courseLessons.length}</p>
+      <h1>{lesson.data.title}</h1>
+      <p>{lesson.data.description}</p>
+    </header>
+    <article class="prose lesson-prose"><Content /></article>
+    <nav class="lesson-navigation" aria-label="Lesson navigation">
+      {previousLesson ? (
+        <a class="previous" href={lessonPath(import.meta.env.BASE_URL, previousLesson.id)}>
+          <small>Previous lesson</small><strong>← {previousLesson.data.title}</strong>
+        </a>
+      ) : <span></span>}
+      {nextLesson ? (
+        <a class="next" href={lessonPath(import.meta.env.BASE_URL, nextLesson.id)}>
+          <small>Next lesson</small><strong>{nextLesson.data.title} →</strong>
+        </a>
+      ) : (
+        <a class="next" href={parentUrl}><small>Course complete</small><strong>Back to {course.data.title} →</strong></a>
+      )}
+    </nav>
+  </div>
+</BaseLayout>

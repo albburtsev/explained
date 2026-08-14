@@ -1,0 +1,20 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { coursePath } from '../lib/content';
+
+interface Props {
+  course: CollectionEntry<'courses'>;
+}
+
+const { course } = Astro.props;
+const href = coursePath(import.meta.env.BASE_URL, course.id);
+---
+
+<article class="course-card">
+  <div class="course-card-meta">{course.data.lessons.length} {course.data.lessons.length === 1 ? 'lesson' : 'lessons'}</div>
+  <h2><a href={href}>{course.data.title}</a></h2>
+  <p>{course.data.description}</p>
+  <div class="tag-list" aria-label="Topics">
+    {course.data.tags.map((tag) => <span>{tag}</span>)}
+  </div>
+</article>

@@ -1,0 +1,161 @@
+<div class="search" data-search-root>
+  <label class="sr-only" for="site-search">Search the knowledge base</label>
+  <div class="search-control">
+    <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17">
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="m16 16 5 5"></path>
+    </svg>
+    <input
+      id="site-search"
+      type="search"
+      placeholder="Search"
+      autocomplete="off"
+      aria-autocomplete="list"
+      aria-controls="search-results"
+      aria-expanded="false"
+      data-search-input
+    />
+    <kbd>⌘K</kbd>
+  </div>
+  <div class="search-panel" data-search-panel hidden>
+    <p class="search-status" data-search-status>Start typing to search.</p>
+    <ul id="search-results" class="search-results" role="listbox" data-search-results></ul>
+  </div>
+</div>
+
+<script>
+  import { createSearch, type SearchDocument } from '../lib/search';
+
+  const root = document.querySelector<HTMLElement>('[data-search-root]');
+  const input = root?.querySelector<HTMLInputElement>('[data-search-input]');
+  const panel = root?.querySelector<HTMLElement>('[data-search-panel]');
+  const status = root?.querySelector<HTMLElement>('[data-search-status]');
+  const results = root?.querySelector<HTMLUListElement>('[data-search-results]');
+
+  let engine: ReturnType<typeof createSearch> | undefined;
+  let loading: Promise<void> | undefined;
+  let selectedIndex = -1;
+  let currentDocuments: SearchDocument[] = [];
+
+  const openPanel = () => {
+    if (!input || !panel) return;
+    panel.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+
+  const closePanel = () => {
+    if (!input || !panel) return;
+    panel.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    input.removeAttribute('aria-activedescendant');
+    selectedIndex = -1;
+  };
+
+  const renderResults = () => {
+    if (!input || !results || !status) return;
+    const query = input.value.trim();
+    results.replaceChildren();
+    selectedIndex = -1;
+
+    if (query.length < 2) {
+      currentDocuments = [];
+      status.textContent = query.length === 0 ? 'Start typing to search.' : 'Type at least two characters.';
+      status.hidden = false;
+      return;
+    }
+
+    currentDocuments = (engine?.search(query, { limit: 8 }) ?? []).map(({ item }) => item);
+    if (currentDocuments.length === 0) {
+      status.textContent = `No results for “${query}”.`;
+      status.hidden = false;
+      return;
+    }
+
+    status.hidden = true;
+    for (const [index, searchDocument] of currentDocuments.entries()) {
+      const item = document.createElement('li');
+      item.id = `search-result-${index}`;
+      item.role = 'option';
+      item.setAttribute('aria-selected', 'false');
+      const link = document.createElement('a');
+      link.href = searchDocument.url;
+      const kind = document.createElement('span');
+      kind.className = 'search-result-kind';
+      kind.textContent = searchDocument.kind;
+      const title = document.createElement('strong');
+      title.textContent = searchDocument.title;
+      const context = document.createElement('small');
+      context.textContent = searchDocument.context ?? searchDocument.description;
+      link.append(kind, title, context);
+      item.append(link);
+      item.addEventListener('mousemove', () => selectResult(index));
+      results.append(item);
+    }
+  };
+
+  const loadIndex = () => {
+    if (engine) return Promise.resolve();
+    if (loading) return loading;
+    if (status) status.textContent = 'Loading search index…';
+    const indexUrl = `${import.meta.env.BASE_URL}search-index.json`;
+    loading = fetch(indexUrl)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
+        return response.json() as Promise<SearchDocument[]>;
+      })
+      .then((documents) => {
+        engine = createSearch(documents);
+      })
+      .catch(() => {
+        if (status) status.textContent = 'Search is temporarily unavailable.';
+      });
+    return loading;
+  };
+
+  const selectResult = (index: number) => {
+    if (!input || !results || currentDocuments.length === 0) return;
+    selectedIndex = (index + currentDocuments.length) % currentDocuments.length;
+    for (const [itemIndex, item] of [...results.children].entries()) {
+      item.setAttribute('aria-selected', String(itemIndex === selectedIndex));
+    }
+    input.setAttribute('aria-activedescendant', `search-result-${selectedIndex}`);
+  };
+
+  input?.addEventListener('focus', () => {
+    openPanel();
+    void loadIndex().then(renderResults);
+  });
+
+  input?.addEventListener('input', () => {
+    openPanel();
+    void loadIndex().then(renderResults);
+  });
+
+  input?.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      selectResult(selectedIndex < 0 ? 0 : selectedIndex + 1);
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      selectResult(selectedIndex < 0 ? currentDocuments.length - 1 : selectedIndex - 1);
+    } else if (event.key === 'Enter' && selectedIndex >= 0) {
+      event.preventDefault();
+      const selected = currentDocuments[selectedIndex];
+      if (selected) window.location.assign(selected.url);
+    } else if (event.key === 'Escape') {
+      closePanel();
+      input.blur();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      input?.focus();
+    }
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (root && event.target instanceof Node && !root.contains(event.target)) closePanel();
+  });
+</script>

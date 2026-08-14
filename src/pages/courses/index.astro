@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import CourseCard from '../../components/CourseCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const courses = (await getCollection('courses')).sort((a, b) => a.data.title.localeCompare(b.data.title));
+---
+
+<BaseLayout title="Courses" description="Browse every course in the Explained knowledge base.">
+  <div class="page-shell content-page">
+    <Breadcrumbs items={[{ label: 'Home', href: import.meta.env.BASE_URL }, { label: 'Courses' }]} />
+    <header class="page-heading">
+      <p class="eyebrow">Library</p>
+      <h1>Courses</h1>
+      <p>Structured paths through the subjects worth understanding.</p>
+    </header>
+    <div class="course-grid">
+      {courses.map((course) => <CourseCard course={course} />)}
+    </div>
+  </div>
+</BaseLayout>

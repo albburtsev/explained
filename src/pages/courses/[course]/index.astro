@@ -1,0 +1,53 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { lessonPath } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const courses = await getCollection('courses');
+  return courses.map((course) => ({ params: { course: course.id }, props: { course } }));
+}
+
+interface Props {
+  course: CollectionEntry<'courses'>;
+}
+
+const { course } = Astro.props;
+const { Content } = await render(course);
+const lessons = await Promise.all(course.data.lessons.map((lesson) => getEntry(lesson)));
+const coursesUrl = `${import.meta.env.BASE_URL}courses/`;
+---
+
+<BaseLayout title={course.data.title} description={course.data.description}>
+  <div class="page-shell content-page">
+    <Breadcrumbs items={[
+      { label: 'Home', href: import.meta.env.BASE_URL },
+      { label: 'Courses', href: coursesUrl },
+      { label: course.data.title },
+    ]} />
+    <header class="page-heading course-heading">
+      <p class="eyebrow">Course · {lessons.length} {lessons.length === 1 ? 'lesson' : 'lessons'}</p>
+      <h1>{course.data.title}</h1>
+      <p>{course.data.description}</p>
+      <div class="tag-list">{course.data.tags.map((tag) => <span>{tag}</span>)}</div>
+    </header>
+    <div class="course-layout">
+      <article class="prose"><Content /></article>
+      <aside class="curriculum" aria-labelledby="curriculum-heading">
+        <p class="eyebrow">Curriculum</p>
+        <h2 id="curriculum-heading">Lessons</h2>
+        <ol>
+          {lessons.map((lesson, index) => (
+            <li>
+              <a href={lessonPath(import.meta.env.BASE_URL, lesson.id)}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <div><strong>{lesson.data.title}</strong><small>{lesson.data.description}</small></div>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
