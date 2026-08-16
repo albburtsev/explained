@@ -19,6 +19,15 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - It is designed to take between 1 and 30 minutes.
 - It is represented by one Markdown file.
 
+## Content identity
+
+- Every course, lesson, and cheatsheet has a human-readable `slug` in the frontmatter of its structured source document.
+- A slug contains 1 to 64 characters arranged as lowercase kebab-case segments separated by single `/` characters.
+- A course slug has one segment. A lesson or cheatsheet slug starts with its parent course slug followed by `/` and recognizable topic context.
+- Slugs are globally unique across courses, lessons, and cheatsheets.
+- Derive slugs automatically from the entity title and context. Do not require the human author to provide them as additional input.
+- Astro uses the frontmatter slug as the entity's entry ID, route, and reference key. Treat a published slug as stable; if it changes intentionally, update every affected reference and route together.
+
 ## Course authoring
 
 - Require the human author to provide the course title and ordered lesson outline in English.
@@ -32,3 +41,4 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - A cheatsheet is a compact, printable PDF placed after the final lesson.
 - It summarizes the course's useful commands, concepts, or keyboard shortcuts in a space-efficient layout.
 - It is not a lesson and does not count toward the course's lesson total.
+- Its structured source document contains the authoritative frontmatter and `slug`; the generated PDF does not need to duplicate that frontmatter.

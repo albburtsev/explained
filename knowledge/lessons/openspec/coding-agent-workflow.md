@@ -1,4 +1,5 @@
 ---
+slug: openspec/coding-agent-workflow
 title: Work with a Coding Agent
 description: Guide an OpenSpec change through planning, implementation, correction, and archive.
 tags:

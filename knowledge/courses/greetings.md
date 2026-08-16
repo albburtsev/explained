@@ -1,4 +1,5 @@
 ---
+slug: greetings
 title: Greetings
 description: A tiny first course about the traditional program that greets the world.
 tags:

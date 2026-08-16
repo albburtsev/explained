@@ -1,4 +1,5 @@
 ---
+slug: openspec/introduction
 title: Meet OpenSpec
 description: Understand why OpenSpec exists, install it on macOS, and initialize a project.
 tags:

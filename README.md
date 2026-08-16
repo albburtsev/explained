@@ -54,6 +54,7 @@ A course defines its ordered curriculum through typed lesson references:
 
 ```yaml
 ---
+slug: greetings
 title: Greetings
 description: A tiny first course.
 tags: [fundamentals, typescript]
@@ -66,13 +67,16 @@ A lesson is stored below its parent course ID:
 
 ```yaml
 ---
+slug: greetings/hello-world
 title: Hello, World!
 description: Write and run a friendly program.
 tags: [fundamentals, typescript]
 ---
 ```
 
-To add content, create the lesson Markdown file and add its ID to the parent course's `lessons` list. Missing references fail the build. Course and lesson IDs become URL segments automatically.
+Every course, lesson, and future cheatsheet source declares a human-readable `slug` of at most 64 characters. A course uses one lowercase kebab-case segment. A lesson or cheatsheet starts with its parent course slug, followed by `/` and one or more lowercase kebab-case topic segments. Slugs are globally unique across all content types, and authoring workflows derive them automatically rather than requiring another human-provided field.
+
+Astro uses the explicit `slug` as the content entry ID, route, and typed reference key. To add content, create the lesson Markdown file and add its slug to the parent course's `lessons` list. Missing references fail the build. Treat a published slug as stable because changing it changes identity and may require coordinated reference and route updates.
 
 ## Search
 
@@ -87,3 +91,5 @@ GitHub Pages on the GitHub Free plan requires this repository to be public.
 ## Planned content
 
 Cheatsheets will become a separate structured content type with their own schema, routes, catalogue, and search entries. They are intentionally not implemented in the first MVP.
+
+When cheatsheet sources are implemented, each frontmatter slug must use a parent-course-prefixed path such as `<course-slug>/<topic>-cheatsheet`, become that entity's entry and route key, and participate in the same repository-wide uniqueness validation as courses and lessons. The printable PDF remains an output associated with that structured source entity.

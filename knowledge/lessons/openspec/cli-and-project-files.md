@@ -1,4 +1,5 @@
 ---
+slug: openspec/cli-and-project-files
 title: Understand the CLI and Project Files
 description: See how the OpenSpec package, terminal commands, artifacts, and directories work together.
 tags:

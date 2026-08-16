@@ -1,4 +1,5 @@
 ---
+slug: openspec
 title: OpenSpec
 description: Learn to plan and deliver coding-agent changes with lightweight, file-based specifications.
 tags:

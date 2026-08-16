@@ -1,4 +1,5 @@
 ---
+slug: greetings/hello-world
 title: Hello, World!
 description: Write and run the smallest friendly TypeScript program.
 tags:

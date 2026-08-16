@@ -34,10 +34,12 @@ Before writing:
 
 1. Resolve the course title to exactly one `knowledge/courses/<course-id>.md` file.
 2. Derive a concise lowercase kebab-case lesson ID from the approved English title, following existing IDs.
-3. Confirm that `knowledge/lessons/<course-id>/<lesson-id>.md` and its course reference do not already exist.
-4. Compare the topic with every existing lesson to avoid duplication and preserve one topic per file.
-5. Confirm that the lesson can stand alone or depend only on lessons before its requested position. Never make it rely on a later lesson.
-6. Check every applicable course-specific requirement from the OpenSpec file.
+3. Read the parent course's frontmatter `slug`. Derive the lesson slug as `<course-slug>/<lesson-id>`, keeping the complete value within 64 characters and every path segment in lowercase kebab-case.
+4. Search the frontmatter of every course, lesson, and cheatsheet source document and confirm that the derived slug is globally unique. If it collides, derive a more specific recognizable slug automatically; do not ask the author to supply one. Pause only if resolving the collision requires a material identity choice.
+5. Confirm that `knowledge/lessons/<course-id>/<lesson-id>.md` and its course reference do not already exist.
+6. Compare the topic with every existing lesson to avoid duplication and preserve one topic per file.
+7. Confirm that the lesson can stand alone or depend only on lessons before its requested position. Never make it rely on a later lesson.
+8. Check every applicable course-specific requirement from the OpenSpec file.
 
 Pause for the author when a collision, ambiguous course, conflicting position, duplicate topic, or specification conflict requires a material choice.
 
@@ -53,6 +55,7 @@ Create `knowledge/lessons/<course-id>/<lesson-id>.md` with this exact frontmatte
 
 ```yaml
 ---
+slug: <generated globally unique contextual slug>
 title: <human-provided English title>
 description: <generated short English description>
 tags:
@@ -75,7 +78,7 @@ Generate the description and tags from the finished lesson. Keep tags concise, r
 
 ## 6. Register the lesson
 
-Add `<course-id>/<lesson-id>` to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order.
+Add `<course-slug>/<lesson-id>`—the new lesson's exact explicit slug—to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order.
 
 Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the specification permits the edit. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
 
@@ -84,7 +87,8 @@ Change other course overview prose only when the new curriculum would otherwise 
 Re-read the new lesson, parent course, earlier lessons, and applicable OpenSpec requirements. Confirm:
 
 - The title is the author's exact English outline entry.
-- The file ID and course reference match and occupy the requested position.
+- The explicit slug begins with the parent course slug, matches the course reference, and occupies the requested position.
+- The explicit slug is recognizable, valid, globally unique across courses, lessons, and cheatsheets, and acts as the lesson's Astro entry ID and route key.
 - Frontmatter matches `src/content.config.ts`.
 - The lesson is English-only, atomic, beginner-focused, and realistically completable within 30 minutes.
 - Every dependency points backward in the curriculum.
@@ -93,4 +97,4 @@ Re-read the new lesson, parent course, earlier lessons, and applicable OpenSpec 
 
 Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands. Also run `git diff --check` and inspect the final diff. Do not stage or commit changes unless explicitly requested.
 
-Report the created lesson path, its curriculum position, any other course file changed, validation results, and any verification that could not be completed.
+Report the created lesson path, its explicit slug, its curriculum position, any other course file changed, validation results, and any verification that could not be completed.
