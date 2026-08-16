@@ -11,11 +11,10 @@ const courses = (await getCollection('courses')).sort((a, b) => a.data.title.loc
   <div class="page-shell content-page">
     <Breadcrumbs items={[{ label: 'Home', href: import.meta.env.BASE_URL }, { label: 'Courses' }]} />
     <header class="page-heading">
-      <p class="eyebrow">Library</p>
       <h1>Courses</h1>
       <p>Structured paths through the subjects worth understanding.</p>
     </header>
-    <div class="course-grid">
+    <div class="course-list">
       {courses.map((course) => <CourseCard course={course} />)}
     </div>
   </div>
