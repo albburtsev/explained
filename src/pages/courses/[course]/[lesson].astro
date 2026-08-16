@@ -49,7 +49,7 @@ const parentUrl = coursePath(import.meta.env.BASE_URL, course.id);
         <a class="previous" href={lessonPath(import.meta.env.BASE_URL, previousLesson.id)}>
           <small>Previous lesson</small><strong>← {previousLesson.data.title}</strong>
         </a>
-      ) : <span></span>}
+      ) : null}
       {nextLesson ? (
         <a class="next" href={lessonPath(import.meta.env.BASE_URL, nextLesson.id)}>
           <small>Next lesson</small><strong>{nextLesson.data.title} →</strong>
