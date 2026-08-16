@@ -2,6 +2,18 @@
 
 Explained is a personal knowledge base made of structured Markdown and published as a static website. The first supported content types are courses and lessons; concise cheatsheets are planned for a later iteration.
 
+## Domain model
+
+A course is a short, focused introduction for someone new to a subject. It avoids unnecessary background and moves from essential theory to practice. A course has no separate prerequisites and contains one or more lessons in a fixed order. Lessons may be independent or may rely only on lessons that appear earlier in the course.
+
+A lesson is the smallest unit of a course. It covers exactly one topic, is designed to take between 1 and 30 minutes, and is stored in one Markdown file.
+
+An optional installation guide may appear before the first lesson. It prepares the learner's environment, but is not a lesson and does not count toward the course's lesson total.
+
+When creating a course, the human author provides its title and ordered lesson outline. The course description and lesson content are generated automatically. Installation guides and cheatsheets remain optional.
+
+A cheatsheet is a compact, printable PDF placed after the final lesson. It summarizes useful commands, concepts, or keyboard shortcuts using a space-efficient layout. It is not a lesson, does not count toward the course's lesson total, and is generated only when the human author explicitly requests it.
+
 ## Requirements
 
 - Node.js 26 (`package.json` enforces `>=26 <27`)
