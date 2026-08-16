@@ -10,8 +10,10 @@ describe('content helpers', () => {
   it('builds GitHub Pages-aware routes', () => {
     expect(normalizeBase('/explained/')).toBe('/explained');
     expect(normalizeBase('/')).toBe('');
-    expect(coursePath('/explained/', 'greetings')).toBe('/explained/courses/greetings/');
-    expect(lessonPath('/explained/', 'greetings/hello-world')).toBe('/explained/courses/greetings/hello-world/');
-    expect(coursePath('/', 'greetings')).toBe('/courses/greetings/');
+    expect(coursePath('/explained/', 'openspec')).toBe('/explained/courses/openspec/');
+    expect(lessonPath('/explained/', 'openspec/introduction')).toBe(
+      '/explained/courses/openspec/introduction/',
+    );
+    expect(coursePath('/', 'openspec')).toBe('/courses/openspec/');
   });
 });

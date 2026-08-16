@@ -44,22 +44,26 @@ The knowledge base lives outside the site implementation:
 ```text
 knowledge/
 ├── courses/
-│   └── greetings.md
+│   └── openspec.md
 └── lessons/
-    └── greetings/
-        └── hello-world.md
+    └── openspec/
+        ├── cli-and-project-files.md
+        ├── coding-agent-workflow.md
+        └── introduction.md
 ```
 
 A course defines its ordered curriculum through typed lesson references:
 
 ```yaml
 ---
-slug: greetings
-title: Greetings
-description: A tiny first course.
-tags: [fundamentals, typescript]
+slug: openspec
+title: OpenSpec
+description: Learn to plan and deliver coding-agent changes with lightweight, file-based specifications.
+tags: [openspec, spec-driven-development, coding-agents]
 lessons:
-  - greetings/hello-world
+  - openspec/introduction
+  - openspec/coding-agent-workflow
+  - openspec/cli-and-project-files
 ---
 ```
 
@@ -67,10 +71,10 @@ A lesson is stored below its parent course ID:
 
 ```yaml
 ---
-slug: greetings/hello-world
-title: Hello, World!
-description: Write and run a friendly program.
-tags: [fundamentals, typescript]
+slug: openspec/introduction
+title: Meet OpenSpec
+description: Understand why OpenSpec exists, install it on macOS, and initialize a project.
+tags: [openspec, spec-driven-development, macos]
 ---
 ```
 

@@ -40,9 +40,7 @@ The migration uses these values:
 
 | Entity | `slug` |
 | --- | --- |
-| Greetings course | `greetings` |
 | OpenSpec course | `openspec` |
-| Hello, World! lesson | `greetings/hello-world` |
 | Meet OpenSpec lesson | `openspec/introduction` |
 | Work with a Coding Agent lesson | `openspec/coding-agent-workflow` |
 | Understand the CLI and Project Files lesson | `openspec/cli-and-project-files` |
