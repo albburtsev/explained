@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Lesson"
+  short_description: "Add a lesson to an existing course"
+  default_prompt: "Use $add-lesson to add an English lesson to an existing course."
