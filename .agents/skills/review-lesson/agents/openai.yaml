@@ -1,0 +1,10 @@
+interface:
+  display_name: "Review Lesson"
+  short_description: "Review a lesson visually at two viewports"
+  default_prompt: "Use $review-lesson <lesson-slug> [review focus] to inspect an existing lesson visually."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "chrome-devtools"
+      description: "Open the local lesson, emulate viewports, capture screenshots, inspect runtime rendering, and close test pages."

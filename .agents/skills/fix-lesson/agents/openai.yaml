@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Lesson"
+  short_description: "Fix an existing lesson by its slug"
+  default_prompt: "Use $fix-lesson <lesson-slug> <fix instruction> to correct an existing English lesson."

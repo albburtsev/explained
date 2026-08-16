@@ -1,11 +1,21 @@
 ---
 name: add-lesson
-description: Add one new English Markdown lesson to an existing Explained course and register it in the course's ordered outline. Use when the human author asks to create, write, insert, or append a lesson under `knowledge/lessons/`; gather any missing author inputs, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
+description: Add one new English Markdown lesson to an existing Explained course selected by a required course-slug argument and register it in the course's ordered outline. Use when the human author invokes `$add-lesson COURSE_SLUG` to create, write, insert, or append a lesson under `knowledge/lessons/`; require that argument before starting, gather any other missing author inputs, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
 ---
 
 # Add Lesson
 
 Create exactly one lesson for an existing course. Write its Markdown file and add its reference to the parent course in the human-defined position.
+
+## Required argument
+
+Require the first argument after `$add-lesson` to be the existing course's exact frontmatter `slug`:
+
+```text
+$add-lesson <course-slug> [lesson request]
+```
+
+Do not infer the course slug from conversation context, a course title, a directory name, or a course file name. Do not accept any of those values as a substitute. If the argument is missing, stop and ask the author to invoke the skill with the required course slug before inspecting or editing course content.
 
 ## 1. Load the current rules
 
@@ -20,7 +30,6 @@ Do not edit the specification to make a conflicting lesson permissible. If the r
 
 Require these decisions from the human author; use conversation context when it already provides them:
 
-- The existing course, identified unambiguously by its English title or course ID.
 - The exact new lesson title in English. Treat it as the author-provided outline entry and bounded topic.
 - The exact position in the ordered curriculum: append it, place it before a named lesson, or place it after a named lesson.
 
@@ -32,9 +41,9 @@ Do not translate a non-English proposed title and silently treat it as author in
 
 Before writing:
 
-1. Resolve the course title to exactly one `knowledge/courses/<course-id>.md` file.
+1. Validate that the required course-slug argument is a one-segment lowercase kebab-case slug no longer than 64 characters, then resolve it against course frontmatter to exactly one `knowledge/courses/<course-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid course slug; never guess or offer a title or course ID as an equivalent.
 2. Derive a concise lowercase kebab-case lesson ID from the approved English title, following existing IDs.
-3. Read the parent course's frontmatter `slug`. Derive the lesson slug as `<course-slug>/<lesson-id>`, keeping the complete value within 64 characters and every path segment in lowercase kebab-case.
+3. Confirm that the resolved parent course's frontmatter `slug` exactly matches the required argument. Derive the lesson slug as `<course-slug>/<lesson-id>`, keeping the complete value within 64 characters and every path segment in lowercase kebab-case.
 4. Search the frontmatter of every course, lesson, and cheatsheet source document and confirm that the derived slug is globally unique. If it collides, derive a more specific recognizable slug automatically; do not ask the author to supply one. Pause only if resolving the collision requires a material identity choice.
 5. Confirm that `knowledge/lessons/<course-id>/<lesson-id>.md` and its course reference do not already exist.
 6. Compare the topic with every existing lesson to avoid duplication and preserve one topic per file.
