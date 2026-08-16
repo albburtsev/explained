@@ -10,6 +10,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - It contains one or more lessons in a fixed order.
 - A lesson may be independent or may rely only on lessons that appear earlier in the course.
 - An installation guide is optional. When present, it appears before the first lesson and is not counted as a lesson.
+- All learner-facing course content is written only in English.
 
 ## Lesson model
 
@@ -20,7 +21,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 
 ## Course authoring
 
-- Require the human author to provide the course title and ordered lesson outline.
+- Require the human author to provide the course title and ordered lesson outline in English.
 - Generate the short course description and lesson content automatically.
 - Do not add a prerequisites section.
 - Treat installation guides as optional preparatory material rather than lessons.

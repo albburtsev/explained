@@ -10,7 +10,7 @@ A lesson is the smallest unit of a course. It covers exactly one topic, is desig
 
 An optional installation guide may appear before the first lesson. It prepares the learner's environment, but is not a lesson and does not count toward the course's lesson total.
 
-When creating a course, the human author provides its title and ordered lesson outline. The course description and lesson content are generated automatically. Installation guides and cheatsheets remain optional.
+When creating a course, the human author provides its title and ordered lesson outline in English. The course description and lesson content are generated automatically. All learner-facing course content—including titles, descriptions, lessons, installation guides, and cheatsheets—is written only in English. Installation guides and cheatsheets remain optional.
 
 A cheatsheet is a compact, printable PDF placed after the final lesson. It summarizes useful commands, concepts, or keyboard shortcuts using a space-efficient layout. It is not a lesson, does not count toward the course's lesson total, and is generated only when the human author explicitly requests it.
 
