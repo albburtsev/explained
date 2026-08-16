@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Course"
+  short_description: "Create a course through delegated lessons"
+  default_prompt: "Use $add-course to create an English course from its title, goal, and ordered initial lessons."
