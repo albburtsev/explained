@@ -22,11 +22,11 @@ You may already have Vim. Check with:
 vim --version
 ```
 
-If you need to install or upgrade it, pick the line for your system:
+macOS includes a terminal version as `vi`. To install the latest release with [Homebrew](https://formulae.brew.sh/formula/vim), run:
 
-- **macOS**: a terminal version is preinstalled as `vi`; install the latest release with [Homebrew](https://formulae.brew.sh/formula/vim): `brew install vim`
-- **Debian/Ubuntu Linux**: `sudo apt install vim`
-- **Windows**: use the signed installer from the [vim-win32-installer releases](https://github.com/vim/vim-win32-installer/releases) or run `winget install vim.vim`
+```sh
+brew install vim
+```
 
 ## Official resources
 

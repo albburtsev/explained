@@ -14,10 +14,10 @@ The previous two lessons taught you to move around and edit with Vim's default b
 
 A `vimrc` file is a plain text file that Vim reads once at startup. Each line is one Command-line mode command — the same command you would type after `:` in Vim, written without the colon — and Vim runs the lines in order before showing you the first file. A line starting with `"` is a comment: Vim ignores it, so you can leave notes for yourself.
 
-Vim looks for your personal vimrc in a fixed list of places and reads only the first one it finds:
+On macOS, Vim looks for your personal vimrc in a fixed list of places and reads only the first one it finds:
 
-- **Linux and macOS**: `~/.vimrc` (or `~/.vim/vimrc`)
-- **Windows**: `$HOME/_vimrc` (or `$HOME/vimfiles/vimrc`)
+- `~/.vimrc`
+- `~/.vim/vimrc`
 
 If you have no vimrc at all, Vim loads a file called `defaults.vim` instead, which turns on a few sensible settings such as syntax highlighting and file type detection — that is why a fresh Vim already feels reasonable. Once you create your own vimrc, `defaults.vim` is no longer loaded, so your file becomes the place where those settings must live. If you want to keep Vim's built-in defaults as a base, the official documentation recommends putting `unlet! skip_defaults_vim` and `source $VIMRUNTIME/defaults.vim` near the top of your file.
 
@@ -84,7 +84,7 @@ Changes made this way disappear when you quit Vim; lines in your vimrc are loade
 
 ## Practice your configuration
 
-1. Open your vimrc with `vim ~/.vimrc` — on Windows, use `vim $HOME/_vimrc` — and press `i` to enter Insert mode.
+1. Open your vimrc with `vim ~/.vimrc` and press `i` to enter Insert mode.
 2. Type the starter set from above, or just `syntax on` and `set number` for a minimal start.
 3. Press `Esc`, save with `:w`, and reload the file with `:source $MYVIMRC`. The line numbers appear immediately.
 4. Open any file, search with `/`, and watch matches highlight as you type.

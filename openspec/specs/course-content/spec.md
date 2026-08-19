@@ -61,6 +61,33 @@ The system SHALL publish course content only in English. This includes course an
 - **THEN** all learner-facing course content is written in English before publication
 - **AND** no non-English version of the course is published
 
+### Requirement: macOS-only installation and configuration guidance
+
+All learner-facing installation and configuration instructions SHALL target macOS exclusively. This restriction SHALL apply to course overviews, lesson metadata and bodies, installation guides, and cheatsheets. When setup guidance uses operating-system-specific commands, package managers, filesystem paths, shell configuration, graphical interface steps, or troubleshooting, the content SHALL provide only the macOS procedure and SHALL NOT provide an alternative for Windows, Linux, or any other operating system. Platform-neutral setup instructions SHALL be included only when they are valid on macOS. Non-procedural references to other operating systems outside installation and configuration guidance SHALL remain permitted.
+
+#### Scenario: Author adds setup guidance
+
+- **WHEN** an author creates or modifies learner-facing installation or configuration content
+- **THEN** every operating-system-specific procedure in that content is for macOS
+- **AND** the content contains no alternative setup procedure for another operating system
+
+#### Scenario: Setup command is platform-neutral
+
+- **WHEN** installation or configuration guidance uses a command or concept that is not specific to one operating system
+- **THEN** the guidance may include it only when the documented procedure works on macOS
+- **AND** the surrounding instructions do not redirect learners to a different operating system
+
+#### Scenario: Existing content is migrated
+
+- **WHEN** repository course content is validated after this policy is introduced
+- **THEN** no course overview, lesson, installation guide, or cheatsheet contains installation or configuration instructions for an operating system other than macOS
+- **AND** applicable setup guidance presents a complete macOS path without changing course identity or curriculum order
+
+#### Scenario: Another operating system is mentioned conceptually
+
+- **WHEN** learner-facing content mentions another operating system without instructing the learner to install or configure anything for that system
+- **THEN** the macOS-only setup policy does not require that conceptual reference to be removed
+
 ### Requirement: Explicit content slugs
 
 Every course, lesson, and cheatsheet SHALL declare a `slug` in the YAML frontmatter of its own structured source document. A slug SHALL be a human-readable path of 1 to 64 characters composed of one or more lowercase kebab-case segments separated by single `/` characters. Each segment SHALL contain lowercase ASCII letters or digits with words separated only by single hyphens; a slug SHALL NOT begin or end with `-` or `/`, contain empty segments, or contain repeated separators. A course slug SHALL use one segment. A lesson or cheatsheet slug SHALL begin with its parent course slug followed by `/` and recognizable topic context. A generated cheatsheet PDF MAY omit source frontmatter because its associated structured source document is the authoritative entity record.

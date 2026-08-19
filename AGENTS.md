@@ -34,6 +34,8 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Generate the short course description and lesson content automatically.
 - Do not add a prerequisites section.
 - Treat installation guides as optional preparatory material rather than lessons.
+- Write all learner-facing installation and configuration instructions for macOS only. This applies to course overviews, lesson metadata and bodies, installation guides, and cheatsheets.
+- Platform-neutral setup instructions are allowed only when they work on macOS. Do not provide setup alternatives for Windows, Linux, or any other operating system; non-procedural references to other operating systems remain allowed.
 - Do not generate a cheatsheet during routine course creation. Generate one only after an explicit request from the human author.
 
 ## Cheatsheet model
