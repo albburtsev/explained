@@ -3,8 +3,9 @@ import { getCollection } from 'astro:content';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import CourseCard from '../../components/CourseCard.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { orderCoursesForCatalog } from '../../lib/course-catalog';
 
-const courses = (await getCollection('courses')).sort((a, b) => a.data.title.localeCompare(b.data.title));
+const courses = orderCoursesForCatalog(await getCollection('courses'));
 ---
 
 <BaseLayout title="Courses" description="Browse every course in the Explained knowledge base.">

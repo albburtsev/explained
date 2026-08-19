@@ -18,6 +18,7 @@ const lessons = defineCollection({
 const courses = defineCollection({
   loader: glob({ base: './knowledge/courses', pattern: '*.md' }),
   schema: contentSchema.extend({
+    catalogOrder: z.number().int().positive(),
     lessons: z.array(reference('lessons')).min(1),
   }),
 });

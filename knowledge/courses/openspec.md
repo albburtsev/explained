@@ -1,6 +1,7 @@
 ---
 slug: openspec
 title: OpenSpec
+catalogOrder: 20
 description: Learn to plan and deliver coding-agent changes with lightweight, file-based specifications.
 tags:
   - openspec

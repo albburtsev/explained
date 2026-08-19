@@ -2,8 +2,9 @@
 import { getCollection } from 'astro:content';
 import CourseCard from '../components/CourseCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { orderCoursesForCatalog } from '../lib/course-catalog';
 
-const courses = (await getCollection('courses')).sort((a, b) => a.data.title.localeCompare(b.data.title));
+const courses = orderCoursesForCatalog(await getCollection('courses'));
 ---
 
 <BaseLayout>

@@ -28,7 +28,7 @@ Lessons:
 
 Treat the ordered lesson list as the human-defined course outline. Use conversation context when it already supplies an item. If anything is missing, ask one concise question containing every missing item and do not inspect or edit course content yet.
 
-Do not infer or silently translate the title or lesson titles. Do not ask the author for a slug, description, tags, estimated duration, prose outline, lesson bodies, installation guide, or cheatsheet. Generate everything except the required inputs. Accept optional emphasis, exclusions, and source requirements when supplied.
+Do not infer or silently translate the title or lesson titles. Do not ask the author for a slug, `catalogOrder`, description, tags, estimated duration, prose outline, lesson bodies, installation guide, or cheatsheet. Generate everything except the required inputs. Accept optional emphasis, exclusions, and source requirements when supplied.
 
 ## 1. Load the current rules
 
@@ -51,8 +51,9 @@ Before writing:
 5. Compare the proposal with existing courses and lessons. Pause for a material choice if it duplicates published content or conflicts with a course-specific requirement.
 6. Derive a concise one-segment lowercase kebab-case course slug from the exact title. Keep it within 64 characters and make it recognizable.
 7. Check frontmatter across every course, lesson, and cheatsheet source. Confirm the slug is globally unique and that `knowledge/courses/<course-slug>.md` and `knowledge/lessons/<course-slug>/` do not identify existing content. Derive a more specific slug automatically when possible; pause only when resolving a collision changes course identity materially.
+8. Check that every existing course has a unique positive integer `catalogOrder`. If the catalogue metadata is invalid, stop and report every conflict rather than creating another course. Otherwise derive `10` when there are no existing courses, or the greatest existing `catalogOrder` plus `10`.
 
-Do not require the author to choose or approve a routine derived slug.
+Do not require the author to choose or approve a routine derived slug or `catalogOrder`.
 
 ## 3. Create the course scaffold
 
@@ -64,6 +65,7 @@ Create `knowledge/courses/<course-slug>.md` with this frontmatter shape:
 ---
 slug: <generated globally unique course slug>
 title: <human-provided English title>
+catalogOrder: <10 for the first course, otherwise current maximum plus 10>
 description: <generated short English description>
 tags:
   - <generated relevant tag>
@@ -107,8 +109,9 @@ After every lesson sub-agent succeeds:
 2. Confirm the course title and every lesson title exactly match the author's English inputs.
 3. Confirm that the ordered course references match the complete initial outline and that dependencies point only backward.
 4. Confirm every frontmatter slug is recognizable, valid, globally unique, and consistent with its Astro entry ID, route, and parent reference.
-5. Confirm the overview fulfills the author-provided goal, all learner-facing content is English, each lesson is atomic and beginner-focused, and no prerequisites section, installation guide, or cheatsheet was added.
-6. Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands.
-7. Run `git diff --check` and inspect the complete diff. Do not stage or commit changes unless explicitly requested.
+5. Confirm the course `catalogOrder` is a unique positive integer equal to `10` for the first course or to the previous maximum plus `10`, so the new course appears after every previously existing course.
+6. Confirm the overview fulfills the author-provided goal, all learner-facing content is English, each lesson is atomic and beginner-focused, and no prerequisites section, installation guide, or cheatsheet was added.
+7. Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands.
+8. Run `git diff --check` and inspect the complete diff. Do not stage or commit changes unless explicitly requested.
 
-Report the course path and slug, ordered lesson paths and slugs, one sub-agent result per lesson, validation results, and anything that could not be verified.
+Report the course path, slug, and `catalogOrder`, ordered lesson paths and slugs, one sub-agent result per lesson, validation results, and anything that could not be verified.

@@ -58,6 +58,7 @@ A course defines its ordered curriculum through typed lesson references:
 ---
 slug: openspec
 title: OpenSpec
+catalogOrder: 20
 description: Learn to plan and deliver coding-agent changes with lightweight, file-based specifications.
 tags: [openspec, spec-driven-development, coding-agents]
 lessons:
@@ -66,6 +67,8 @@ lessons:
   - openspec/cli-and-project-files
 ---
 ```
+
+Every course declares a unique positive integer `catalogOrder`. Complete course catalogues sort by this value in ascending order. The values are intentionally sparse—normally `10`, `20`, `30`, and so on—so an author can move or insert a course without renumbering the whole catalogue. This field is repository metadata rather than learner-facing content and does not affect slugs, routes, or lesson order. Course-creation workflows assign the next value automatically instead of requesting it from the human author.
 
 A lesson is stored below its parent course ID:
 
