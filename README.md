@@ -17,7 +17,7 @@ A cheatsheet is a compact, printable PDF placed after the final lesson. It summa
 ## Requirements
 
 - Node.js 26 (`package.json` enforces `>=26 <27`)
-- pnpm 10.32.1
+- pnpm 11
 
 This repository is configured for the project site at `https://albburtsev.github.io/explained/`.
 
