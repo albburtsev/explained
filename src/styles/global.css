@@ -300,8 +300,6 @@ button { color: inherit; }
   letter-spacing: -.015em;
 }
 
-.course-list { border-top: 1px solid var(--color-border); }
-
 .course-entry {
   position: relative;
   display: grid;
