@@ -25,12 +25,12 @@ The site SHALL present the home page as a compact course catalogue that starts i
 
 ### Requirement: Author-defined course catalogue order
 
-The site SHALL display complete course catalogues in ascending `catalogOrder`. The home-page catalogue and the `/courses` catalogue SHALL use the same ordering behavior, and alphabetical title order SHALL NOT override the author-defined order.
+The site SHALL display complete course catalogues in descending `catalogOrder`. The home-page catalogue and the `/courses` catalogue SHALL use the same ordering behavior, and alphabetical title order SHALL NOT override the author-defined order.
 
 #### Scenario: Visitor opens the home-page catalogue
 
 - **WHEN** the course collection contains entries with distinct `catalogOrder` values
-- **THEN** the home page displays the courses from the lowest value to the highest value
+- **THEN** the home page displays the courses from the highest value to the lowest value
 
 #### Scenario: Visitor opens the courses catalogue
 
@@ -45,7 +45,7 @@ The site SHALL display complete course catalogues in ascending `catalogOrder`. T
 #### Scenario: An author changes catalogue order
 
 - **WHEN** an author changes courses to another valid set of `catalogOrder` values
-- **THEN** every complete course catalogue reflects the new ascending order at publication
+- **THEN** every complete course catalogue reflects the new descending order at publication
 
 ### Requirement: Minimal graphic language
 The site SHALL use the Explained logo as its only graphic element and SHALL express search, theme selection, metadata, navigation, and state through text, typography, rules, and color rather than decorative images or nonessential icons.

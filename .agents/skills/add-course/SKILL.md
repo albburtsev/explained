@@ -51,7 +51,7 @@ Before writing:
 5. Compare the proposal with existing courses and lessons. Pause for a material choice if it duplicates published content or conflicts with a course-specific requirement.
 6. Derive a concise one-segment lowercase kebab-case course slug from the exact title. Keep it within 64 characters and make it recognizable.
 7. Check frontmatter across every course, lesson, and cheatsheet source. Confirm the slug is globally unique and that `knowledge/courses/<course-slug>.md` and `knowledge/lessons/<course-slug>/` do not identify existing content. Derive a more specific slug automatically when possible; pause only when resolving a collision changes course identity materially.
-8. Check that every existing course has a unique positive integer `catalogOrder`. If the catalogue metadata is invalid, stop and report every conflict rather than creating another course. Otherwise derive `10` when there are no existing courses, or the greatest existing `catalogOrder` plus `10`.
+8. Check that every existing course has a unique positive integer `catalogOrder`. If the catalogue metadata is invalid, stop and report every conflict rather than creating another course. Otherwise derive `10` when there are no existing courses, or the greatest existing `catalogOrder` plus `10`, so the new course appears first without changing existing courses.
 
 Do not require the author to choose or approve a routine derived slug or `catalogOrder`.
 
@@ -109,7 +109,7 @@ After every lesson sub-agent succeeds:
 2. Confirm the course title and every lesson title exactly match the author's English inputs.
 3. Confirm that the ordered course references match the complete initial outline and that dependencies point only backward.
 4. Confirm every frontmatter slug is recognizable, valid, globally unique, and consistent with its Astro entry ID, route, and parent reference.
-5. Confirm the course `catalogOrder` is a unique positive integer equal to `10` for the first course or to the previous maximum plus `10`, so the new course appears after every previously existing course.
+5. Confirm the course `catalogOrder` is a unique positive integer equal to `10` for the first course or to the previous maximum plus `10`, so the new course appears before every previously existing course without changing their values.
 6. Confirm the overview fulfills the author-provided goal, all learner-facing content is English, each lesson is atomic and beginner-focused, and no prerequisites section, installation guide, or cheatsheet was added.
 7. Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands.
 8. Run `git diff --check` and inspect the complete diff. Do not stage or commit changes unless explicitly requested.

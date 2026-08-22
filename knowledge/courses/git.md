@@ -1,7 +1,7 @@
 ---
 slug: git
 title: Git
-catalogOrder: 40
+catalogOrder: 10
 description: Advanced Git techniques for developers who already use Git daily, covering external repositories, parallel working copies, and recovery with local reference logs.
 tags:
   - git

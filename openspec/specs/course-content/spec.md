@@ -73,27 +73,29 @@ Every course source document SHALL declare a `catalogOrder` in its frontmatter. 
 - **THEN** content validation fails before publication
 - **AND** the error reports the duplicate value and every conflicting course
 
-#### Scenario: Existing courses receive catalogue order metadata
+#### Scenario: Existing courses adopt descending catalogue order
 
-- **WHEN** the existing course collection is migrated to `catalogOrder`
-- **THEN** Git precedes OpenSpec and OpenSpec precedes Vim
+- **WHEN** the existing course collection is migrated to descending `catalogOrder`
+- **THEN** Temporal declares `40`, OpenSpec declares `30`, Vim declares `20`, and Git declares `10`
+- **AND** their visible order remains Temporal, OpenSpec, Vim, then Git
 - **AND** their slugs, routes, and lesson references remain unchanged
 
 ### Requirement: Automatic catalogue placement for a new course
 
-The course creation flow SHALL assign a valid, unique `catalogOrder` to a new course automatically. The assigned value SHALL place the new course after every existing course, and the flow SHALL NOT require the human author to provide catalogue-order metadata as an additional input.
+The course creation flow SHALL assign a valid, unique `catalogOrder` to a new course automatically. The assigned value SHALL be `10` for an empty catalogue or the greatest existing value plus `10`, placing the new course before every existing course without changing their metadata. The flow SHALL NOT require the human author to provide catalogue-order metadata as an additional input.
 
 #### Scenario: Author creates a course in a non-empty catalogue
 
 - **WHEN** the author provides the required title, goal, and ordered lesson outline
-- **THEN** the generated course declares a valid, unique `catalogOrder`
-- **AND** the new course appears after all previously existing courses
+- **THEN** the generated course declares a valid, unique `catalogOrder` equal to the previous maximum plus `10`
+- **AND** every previously existing course retains its `catalogOrder`
+- **AND** the new course appears before all previously existing courses
 - **AND** the author is not asked to choose the value
 
 #### Scenario: Author creates the first course
 
 - **WHEN** the author creates a course while the course collection is empty
-- **THEN** the generated course declares a valid positive integer `catalogOrder`
+- **THEN** the generated course declares `catalogOrder: 10`
 - **AND** the author is not asked to choose the value
 
 ### Requirement: English-only course content

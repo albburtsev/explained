@@ -1,7 +1,7 @@
 ---
 slug: vim
 title: Vim
-catalogOrder: 30
+catalogOrder: 20
 description: Get started with Vim, the ubiquitous modal text editor, from its modes and essential keyboard shortcuts to a basic configuration.
 tags:
   - vim

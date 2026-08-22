@@ -32,9 +32,9 @@ Explained is a content-first knowledge base built from structured Markdown and p
 
 - Require the human author to provide the course title and ordered lesson outline in English.
 - Generate the short course description and lesson content automatically.
-- Every course source declares a positive integer `catalogOrder` that is unique across courses and controls ascending catalogue position.
+- Every course source declares a positive integer `catalogOrder` that is unique across courses and controls descending catalogue position.
 - Treat `catalogOrder` as sparse, non-learner-facing metadata: leave numeric gaps where practical, and do not let it affect slugs, routes, or lesson order.
-- Assign a new course's `catalogOrder` automatically after all existing courses. Do not require it as additional human input.
+- Assign a new course `catalogOrder: 10` when the catalogue is empty or the greatest existing value plus `10` otherwise, so the new course appears first without changing existing courses. Do not require `catalogOrder` as additional human input.
 - Do not add a prerequisites section.
 - Treat installation guides as optional preparatory material rather than lessons.
 - Write all learner-facing installation and configuration instructions for macOS only. This applies to course overviews, lesson metadata and bodies, installation guides, and cheatsheets.

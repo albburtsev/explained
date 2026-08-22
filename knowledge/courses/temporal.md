@@ -1,7 +1,7 @@
 ---
 slug: temporal
 title: Temporal
-catalogOrder: 10
+catalogOrder: 40
 description: Learn to build reliable, long-running TypeScript applications with Temporal workflows, activities, workers, messages, tests, and schedules.
 tags:
   - temporal

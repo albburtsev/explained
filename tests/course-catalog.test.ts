@@ -6,7 +6,7 @@ function course(id: string, title: string, catalogOrder: number) {
 }
 
 describe('course catalogue ordering', () => {
-  it('sorts by catalogOrder instead of title without mutating the input', () => {
+  it('sorts by descending catalogOrder instead of title without mutating the input', () => {
     const courses = [
       course('zebra', 'Zebra', 20),
       course('alpha', 'Alpha', 30),
@@ -16,7 +16,7 @@ describe('course catalogue ordering', () => {
 
     const orderedCourses = orderCoursesForCatalog(courses);
 
-    expect(orderedCourses.map(({ id }) => id)).toEqual(['middle', 'zebra', 'alpha']);
+    expect(orderedCourses.map(({ id }) => id)).toEqual(['alpha', 'zebra', 'middle']);
     expect(courses).toEqual(originalOrder);
     expect(orderedCourses).not.toBe(courses);
   });

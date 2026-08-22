@@ -28,5 +28,5 @@ export function orderCoursesForCatalog<T extends CourseCatalogEntry>(courses: re
     throw new Error(`Invalid course catalogue order:\n${errors.join('\n')}`);
   }
 
-  return courses.toSorted((left, right) => left.data.catalogOrder - right.data.catalogOrder);
+  return courses.toSorted((left, right) => right.data.catalogOrder - left.data.catalogOrder);
 }
