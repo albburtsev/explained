@@ -1,6 +1,6 @@
 ---
 name: add-course
-description: Create one new English Explained course from a required author-provided title, goal, and ordered list of initial lesson titles. Use when the human author invokes `$add-course` to create a course under `knowledge/courses/`; require all three inputs, derive the course slug and metadata, delegate every lesson sequentially to a separate sub-agent invoking `$add-lesson COURSE_SLUG`, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
+description: Create one new English Explained course from a required author-provided title, goal, and ordered list of initial lesson titles. Use when the human author invokes `$add-course` to create a course under `knowledge/courses/`; require all three inputs, derive the course slug and metadata, delegate every lesson concurrently to a separate sub-agent invoking `$add-lesson COURSE_SLUG`, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
 ---
 
 # Add Course
@@ -51,7 +51,8 @@ Before writing:
 5. Compare the proposal with existing courses and lessons. Pause for a material choice if it duplicates published content or conflicts with a course-specific requirement.
 6. Derive a concise one-segment lowercase kebab-case course slug from the exact title. Keep it within 64 characters and make it recognizable.
 7. Check frontmatter across every course, lesson, and cheatsheet source. Confirm the slug is globally unique and that `knowledge/courses/<course-slug>.md` and `knowledge/lessons/<course-slug>/` do not identify existing content. Derive a more specific slug automatically when possible; pause only when resolving a collision changes course identity materially.
-8. Check that every existing course has a unique positive integer `catalogOrder`. If the catalogue metadata is invalid, stop and report every conflict rather than creating another course. Otherwise derive `10` when there are no existing courses, or the greatest existing `catalogOrder` plus `10`, so the new course appears first without changing existing courses.
+8. Derive and reserve one recognizable lesson slug and file path for every outline entry, using the same identity rules as `$add-lesson`. Confirm that all planned lesson slugs and paths are valid and unique both globally and within the batch. Resolve routine collisions automatically before starting any sub-agent.
+9. Check that every existing course has a unique positive integer `catalogOrder`. If the catalogue metadata is invalid, stop and report every conflict rather than creating another course. Otherwise derive `10` when there are no existing courses, or the greatest existing `catalogOrder` plus `10`, so the new course appears first without changing existing courses.
 
 Do not require the author to choose or approve a routine derived slug or `catalogOrder`.
 
@@ -69,11 +70,13 @@ catalogOrder: <10 for the first course, otherwise current maximum plus 10>
 description: <generated short English description>
 tags:
   - <generated relevant tag>
-lessons: []
+lessons:
+  - <reserved slug for lesson 1>
+  - <reserved slug for lesson 2>
 ---
 ```
 
-The empty `lessons` list is a temporary scaffold that lets `$add-lesson` register each lesson itself. Do not validate or publish this transient state. It must contain at least one lesson reference before the workflow finishes.
+Include every reserved lesson slug in the exact author-defined order. This is a temporary coordinated-batch scaffold: its references may point to lesson files that are still being created, so do not validate or publish it until the sub-agents finish. Pre-registering the complete outline gives the parent agent sole ownership of the shared course file and prevents concurrent lost updates.
 
 Write a concise English course overview from the goal and complete ordered outline. Include only the theory needed to frame the subject and a short `What you will learn` section aligned with the initial lessons. Generate a concise description and reusable lowercase tags. Do not add a prerequisites section, installation guide, or cheatsheet.
 
@@ -81,25 +84,30 @@ Write a concise English course overview from the goal and complete ordered outli
 
 Require sub-agent support. If sub-agents cannot be started, stop and explain that the requested delegated workflow cannot be completed; do not write lesson files inline.
 
-For each lesson in author-defined order:
+Prepare one task for every lesson in author-defined order:
 
-1. Start a new, separate sub-agent for that lesson only. Do not reuse one agent for multiple lessons.
-2. In the task, explicitly invoke the existing skill and include the exact course slug, exact English lesson title, append position, course goal, ordinal position, total lesson count, and complete ordered outline. Use this prompt shape:
+1. Assign each lesson to a new, separate sub-agent. Do not reuse one agent for multiple lessons.
+2. Give each sub-agent exclusive ownership of its reserved lesson file and forbid it from editing the shared parent course file. The pre-registered reference satisfies `$add-lesson`'s registration step for this coordinated batch; tell the sub-agent not to reject that expected existing reference. All other `$add-lesson` research, content, identity, dependency, and validation requirements remain authoritative.
+3. In the task, explicitly invoke the existing skill and include the exact course slug, exact English lesson title, reserved lesson slug and path, course goal, ordinal position, total lesson count, and complete ordered outline. Use this prompt shape:
 
    ```text
-   Use `$add-lesson <course-slug>` to append the lesson "<exact lesson title>".
+   Use `$add-lesson <course-slug>` to create the lesson "<exact lesson title>".
+   This is a coordinated parallel course build. The parent has already reserved
+   `<lesson-slug>` at position <n> in `<course-path>`. Treat that reference as
+   satisfying the registration step, create only `<lesson-path>`, and do not edit
+   the shared course file or reject its expected existing reference.
    Course goal: <goal>
    This is lesson <n> of <count> in the author-approved outline: <ordered titles>.
    Read and follow the repository's add-lesson skill; do not merely imitate it.
    ```
 
-3. Run only one lesson sub-agent at a time. Wait for it to finish before starting the next because all agents edit the same course outline and later lessons may depend on earlier content.
-4. After it finishes, inspect its reported result and filesystem changes. Confirm that exactly one lesson was created, its title matches the author's outline entry, and its slug was appended to the parent course after all earlier lessons.
-5. If verification fails, send a focused correction to that same sub-agent and wait again. Do not start the next lesson until the current one is correct or genuinely blocked.
+4. Start all lesson sub-agents without waiting for any lesson result between launches, then wait for the batch. When the platform has a hard concurrency limit, queue every task before waiting when supported; otherwise keep every available slot occupied and launch each remaining task immediately when a slot opens. Never intentionally serialize lesson generation.
+5. As results arrive, inspect each report and its filesystem changes. Confirm that the agent created exactly its assigned lesson file, preserved the exact title and reserved slug, and did not modify the parent course or another lesson's file.
+6. If verification fails, send a focused correction to that same sub-agent. Corrections for independent lesson files may also run concurrently. Do not let one lesson's retry delay unrelated lesson work.
 
-Never write, register, or repair a lesson in the parent agent. Delegate that work through `$add-lesson` so its research, content, identity, ordering, and validation constraints remain authoritative.
+Never write or repair lesson content in the parent agent. Delegate that work through `$add-lesson` so its research, content, identity, and validation constraints remain authoritative. The parent agent alone owns the shared course file during the parallel batch.
 
-If no lesson succeeds, remove only the untouched temporary course scaffold created by this workflow. If at least one lesson succeeds and a later lesson is blocked, keep the valid partial course, report the incomplete outline precisely, and do not claim completion.
+After all sub-agents and focused retries finish, reconcile the parent course's `lessons` array once. If every lesson succeeded, it must remain the complete reserved outline. If some lessons are genuinely blocked, remove only their unresolved reserved references so the retained partial course contains successful lessons in author-defined order. If no lesson succeeds, remove only the temporary course scaffold created by this workflow. Report any incomplete outline precisely and do not claim completion.
 
 ## 5. Verify the complete course
 
