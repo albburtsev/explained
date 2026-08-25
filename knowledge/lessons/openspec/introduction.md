@@ -41,11 +41,7 @@ Homebrew manages the CLI and its Node.js dependency for you.
 
 ### npm
 
-The OpenSpec npm package requires Node.js 20.19.0 or newer. Check your active version first:
-
-```sh
-node --version
-```
+Required dependency: `Node.js v20.19+`.
 
 Then install the CLI globally so the `openspec` command is available across projects:
 

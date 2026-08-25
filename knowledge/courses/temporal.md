@@ -24,11 +24,7 @@ This course builds one TypeScript application that prepares and delivers an exec
 
 ## Set up Temporal on macOS
 
-The Temporal TypeScript SDK supports Node.js 20, 22, and 24. Check that your current Node.js version is supported:
-
-```sh
-node --version
-```
+Required dependency: `Node.js v20+`.
 
 Install Temporal CLI with Homebrew and verify the installation:
 
@@ -50,7 +46,6 @@ In another terminal, create the TypeScript project used throughout the lessons:
 ```sh
 npx @temporalio/create@latest temporal-bi-report --sample hello-world
 cd temporal-bi-report
-npm install
 ```
 
 The generated project includes the Temporal TypeScript SDK packages and a small end-to-end application that you will reshape into the executive-report pipeline.

@@ -39,6 +39,8 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Treat installation guides as optional preparatory material rather than lessons.
 - Write all learner-facing installation and configuration instructions for macOS only. This applies to course overviews, lesson metadata and bodies, installation guides, and cheatsheets.
 - Platform-neutral setup instructions are allowed only when they work on macOS. Do not provide setup alternatives for Windows, Linux, or any other operating system; non-procedural references to other operating systems remain allowed.
+- State required software dependencies concisely inside the relevant setup guidance, using the shortest accurate version constraint such as `Node.js v20+`; do not add a separate prerequisites section or enumerate versions when one accurate range is enough.
+- Do not provide commands or procedures to install, upgrade, select, or verify the version of a dependency. Commands may still install or verify the course's primary tool and may initialize, configure, or run the learning project, including project generators that manage their own packages.
 - Do not generate a cheatsheet during routine course creation. Generate one only after an explicit request from the human author.
 
 ## Cheatsheet model

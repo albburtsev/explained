@@ -135,6 +135,35 @@ All learner-facing installation and configuration instructions SHALL target macO
 - **WHEN** learner-facing content mentions another operating system without instructing the learner to install or configure anything for that system
 - **THEN** the macOS-only setup policy does not require that conceptual reference to be removed
 
+### Requirement: Concise dependency guidance
+
+Learner-facing installation and configuration guidance MAY identify software dependencies required before the learner can use the course's primary tool or project. Each dependency SHALL be stated concisely with the shortest accurate version constraint, when one is needed, and SHALL NOT be expanded into an exhaustive version list when one range is sufficient. The content SHALL NOT provide commands or procedures to install, upgrade, select, or verify the version of those dependencies. This restriction SHALL NOT prohibit commands that install or verify the course's primary tool or that initialize, configure, or run the learning project, including project generators that manage their own packages.
+
+#### Scenario: Setup guidance names a dependency
+
+- **WHEN** installation or configuration guidance identifies software that the learner must already have
+- **THEN** the dependency appears as a concise name and accurate version constraint, such as `Node.js v20+`
+- **AND** the content does not instruct the learner to install, upgrade, select, or run a version check for that dependency
+- **AND** the dependency declaration does not create a separate prerequisites section
+
+#### Scenario: Setup guidance installs the primary tool
+
+- **WHEN** the learner must install or verify the tool that the course teaches
+- **THEN** the guidance may include commands that install or verify that primary tool
+- **AND** those commands do not add a separate procedure for installing the tool's dependencies
+
+#### Scenario: Setup guidance creates the learning project
+
+- **WHEN** the course uses a project generator that provisions its own packages
+- **THEN** the guidance may run that generator and continue with project configuration or execution
+- **AND** the guidance does not add a separate dependency-installation command after generation
+
+#### Scenario: Existing dependency guidance is migrated
+
+- **WHEN** repository course content is audited after this policy is introduced
+- **THEN** every dependency declaration is concise and accurate
+- **AND** no course overview, lesson, installation guide, or cheatsheet instructs the learner to install or verify a dependency
+
 ### Requirement: Explicit content slugs
 
 Every course, lesson, and cheatsheet SHALL declare a `slug` in the YAML frontmatter of its own structured source document. A slug SHALL be a human-readable path of 1 to 64 characters composed of one or more lowercase kebab-case segments separated by single `/` characters. Each segment SHALL contain lowercase ASCII letters or digits with words separated only by single hyphens; a slug SHALL NOT begin or end with `-` or `/`, contain empty segments, or contain repeated separators. A course slug SHALL use one segment. A lesson or cheatsheet slug SHALL begin with its parent course slug followed by `/` and recognizable topic context. A generated cheatsheet PDF MAY omit source frontmatter because its associated structured source document is the authoritative entity record.
@@ -257,13 +286,14 @@ The course overview and every lesson SHALL visually distinguish each important O
 
 ### Requirement: OpenSpec introduction lesson
 
-The first lesson SHALL explain what OpenSpec is, which problems it addresses when requirements otherwise live only in coding-agent chat, and how it supports specification-driven development. It SHALL present Homebrew and global npm as two macOS installation methods, include current runtime and verification guidance, explain project initialization, and link to the official OpenSpec website, repository, documentation, and package page.
+The first lesson SHALL explain what OpenSpec is, which problems it addresses when requirements otherwise live only in coding-agent chat, and how it supports specification-driven development. It SHALL present Homebrew and global npm as two macOS installation methods, state the current Node.js runtime requirement concisely without a Node.js installation or version-check command, include verification guidance for the installed OpenSpec CLI, explain project initialization, and link to the official OpenSpec website, repository, documentation, and package page.
 
 #### Scenario: Learner completes the introduction
 
 - **WHEN** a learner completes the first lesson
 - **THEN** the learner can describe the purpose of OpenSpec
 - **AND** can choose between the documented Homebrew and npm installation methods on macOS
+- **AND** sees the required Node.js runtime stated concisely without a command to install or verify Node.js
 - **AND** can verify the installed CLI and initialize OpenSpec in a project
 - **AND** can follow links to the official project resources
 
