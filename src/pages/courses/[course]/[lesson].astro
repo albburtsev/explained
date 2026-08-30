@@ -31,32 +31,34 @@ const parentUrl = coursePath(import.meta.env.BASE_URL, course.id);
 ---
 
 <BaseLayout title={lesson.data.title} description={lesson.data.description}>
-  <div class="page-shell content-page lesson-page">
+  <div class="content-page">
     <Breadcrumbs items={[
       { label: 'Home', href: import.meta.env.BASE_URL },
       { label: 'Courses', href: coursesUrl },
       { label: course.data.title, href: parentUrl },
       { label: lesson.data.title },
     ]} />
-    <header class="page-heading lesson-heading">
-      <p class="eyebrow">{course.data.title} · Lesson {currentIndex + 1} of {courseLessons.length}</p>
-      <h1>{lesson.data.title}</h1>
-      <p>{lesson.data.description}</p>
-    </header>
-    <article class="prose lesson-prose"><Content /></article>
-    <nav class="lesson-navigation" aria-label="Lesson navigation">
-      {previousLesson ? (
-        <a class="previous" href={lessonPath(import.meta.env.BASE_URL, previousLesson.id)}>
-          <small>Previous lesson</small><strong>← {previousLesson.data.title}</strong>
-        </a>
-      ) : null}
-      {nextLesson ? (
-        <a class="next" href={lessonPath(import.meta.env.BASE_URL, nextLesson.id)}>
-          <small>Next lesson</small><strong>{nextLesson.data.title} →</strong>
-        </a>
-      ) : (
-        <a class="next" href={parentUrl}><small>Course complete</small><strong>Back to {course.data.title} →</strong></a>
-      )}
-    </nav>
+    <div class="page-shell lesson-page">
+      <header class="page-heading lesson-heading">
+        <p class="eyebrow">{course.data.title} · Lesson {currentIndex + 1} of {courseLessons.length}</p>
+        <h1>{lesson.data.title}</h1>
+        <p>{lesson.data.description}</p>
+      </header>
+      <article class="prose lesson-prose"><Content /></article>
+      <nav class="lesson-navigation" aria-label="Lesson navigation">
+        {previousLesson ? (
+          <a class="previous" href={lessonPath(import.meta.env.BASE_URL, previousLesson.id)}>
+            <small>Previous lesson</small><strong>← {previousLesson.data.title}</strong>
+          </a>
+        ) : null}
+        {nextLesson ? (
+          <a class="next" href={lessonPath(import.meta.env.BASE_URL, nextLesson.id)}>
+            <small>Next lesson</small><strong>{nextLesson.data.title} →</strong>
+          </a>
+        ) : (
+          <a class="next" href={parentUrl}><small>Course complete</small><strong>Back to {course.data.title} →</strong></a>
+        )}
+      </nav>
+    </div>
   </div>
 </BaseLayout>

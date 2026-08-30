@@ -20,33 +20,35 @@ const coursesUrl = `${import.meta.env.BASE_URL}courses/`;
 ---
 
 <BaseLayout title={course.data.title} description={course.data.description}>
-  <div class="page-shell content-page">
+  <div class="content-page">
     <Breadcrumbs items={[
       { label: 'Home', href: import.meta.env.BASE_URL },
       { label: 'Courses', href: coursesUrl },
       { label: course.data.title },
     ]} />
-    <header class="page-heading course-heading">
-      <p class="eyebrow">Course · {lessons.length} {lessons.length === 1 ? 'lesson' : 'lessons'}</p>
-      <h1>{course.data.title}</h1>
-      <p>{course.data.description}</p>
-      <div class="tag-list">{course.data.tags.map((tag) => <span>{tag}</span>)}</div>
-    </header>
-    <div class="course-layout">
-      <article class="prose"><Content /></article>
-      <aside class="curriculum" aria-labelledby="curriculum-heading">
-        <h2 id="curriculum-heading">Lessons</h2>
-        <ol>
-          {lessons.map((lesson, index) => (
-            <li>
-              <a href={lessonPath(import.meta.env.BASE_URL, lesson.id)}>
-                <span>{String(index + 1).padStart(2, '0')}</span>
-                <div><strong>{lesson.data.title}</strong><small>{lesson.data.description}</small></div>
-              </a>
-            </li>
-          ))}
-        </ol>
-      </aside>
+    <div class="page-shell">
+      <header class="page-heading course-heading">
+        <p class="eyebrow">Course · {lessons.length} {lessons.length === 1 ? 'lesson' : 'lessons'}</p>
+        <h1>{course.data.title}</h1>
+        <p>{course.data.description}</p>
+        <div class="tag-list">{course.data.tags.map((tag) => <span>{tag}</span>)}</div>
+      </header>
+      <div class="course-layout">
+        <article class="prose"><Content /></article>
+        <aside class="curriculum" aria-labelledby="curriculum-heading">
+          <h2 id="curriculum-heading">Lessons</h2>
+          <ol>
+            {lessons.map((lesson, index) => (
+              <li>
+                <a href={lessonPath(import.meta.env.BASE_URL, lesson.id)}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div><strong>{lesson.data.title}</strong><small>{lesson.data.description}</small></div>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </div>
     </div>
   </div>
 </BaseLayout>

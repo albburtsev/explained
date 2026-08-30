@@ -9,14 +9,16 @@ const courses = orderCoursesForCatalog(await getCollection('courses'));
 ---
 
 <BaseLayout title="Courses" description="Browse every course in the Explained knowledge base.">
-  <div class="page-shell content-page">
+  <div class="content-page">
     <Breadcrumbs items={[{ label: 'Home', href: import.meta.env.BASE_URL }, { label: 'Courses' }]} />
-    <header class="page-heading">
-      <h1>Courses</h1>
-      <p>Structured paths through the subjects worth understanding.</p>
-    </header>
-    <div class="course-list">
-      {courses.map((course) => <CourseCard course={course} />)}
+    <div class="page-shell">
+      <header class="page-heading">
+        <h1>Courses</h1>
+        <p>Structured paths through the subjects worth understanding.</p>
+      </header>
+      <div class="course-list">
+        {courses.map((course) => <CourseCard course={course} />)}
+      </div>
     </div>
   </div>
 </BaseLayout>

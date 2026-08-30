@@ -10,6 +10,7 @@
   --color-accent-soft: #223a2e;
   --color-focus: #b9dfc8;
   --color-code: #0d1117;
+  --shadow-sticky: 0 1rem 1.5rem -.5rem rgb(0 0 0 / 85%);
   --font-serif: ui-serif, Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -29,6 +30,7 @@
   --shell-width: 65rem;
   --prose-width: 68ch;
   --control-height: 2.25rem;
+  --site-header-height: calc(var(--control-height) + var(--space-4) + 1px);
   --radius-sm: .1875rem;
   --radius-md: .375rem;
   font-family: var(--font-sans);
@@ -47,6 +49,7 @@
   --color-accent-soft: #dce9df;
   --color-focus: #245d49;
   --color-code: #0d1117;
+  --shadow-sticky: 0 1rem 1.5rem -.5rem rgb(0 0 0 / 45%);
 }
 
 * { box-sizing: border-box; }
@@ -112,6 +115,7 @@ button { color: inherit; }
 
 .page-shell,
 .header-inner,
+.breadcrumbs ol,
 .site-footer {
   width: min(var(--shell-width), calc(100% - var(--space-12)));
   margin-inline: auto;
@@ -367,14 +371,25 @@ button { color: inherit; }
   content: "·";
 }
 
-.content-page { padding-block: var(--space-8) var(--space-12); }
+.content-page { padding-block: 0 var(--space-12); }
+
+.breadcrumbs {
+  position: sticky;
+  z-index: 10;
+  top: var(--site-header-height);
+  padding-block: var(--space-3);
+  margin-bottom: var(--space-6);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sticky);
+}
 
 .breadcrumbs ol {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-2);
   padding: 0;
-  margin: 0 0 var(--space-6);
+  margin-block: 0;
   color: var(--color-muted);
   font-size: var(--text-xs);
   list-style: none;
@@ -432,7 +447,7 @@ button { color: inherit; }
 
 .prose h2,
 .prose h3 {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: calc(var(--site-header-height) + var(--space-12));
   font-weight: 700;
   letter-spacing: -.02em;
   line-height: 1.25;
@@ -469,12 +484,62 @@ button { color: inherit; }
 .prose pre {
   max-width: 100%;
   margin: var(--space-6) 0;
-  padding: var(--space-4);
+  padding: var(--space-4) calc(var(--space-12) + var(--space-2)) var(--space-4) var(--space-4);
   overflow-x: auto;
   color: var(--color-text);
   background: var(--color-code) !important;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+}
+
+.code-block {
+  position: relative;
+  margin: var(--space-6) 0;
+}
+
+.prose .code-block pre { margin: 0; }
+
+.code-copy-button {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: grid;
+  width: var(--space-8);
+  height: var(--space-8);
+  padding: 0;
+  place-items: center;
+  color: #aab2bd;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.code-copy-button:hover,
+.code-copy-button:focus-visible { color: #f0f6fc; }
+.code-copy-button:focus-visible { outline: 0; }
+
+.code-copy-button svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.code-copy-success-icon { display: none; }
+
+.code-copy-button[data-state="copied"] {
+  color: #56d364;
+}
+
+.code-copy-button[data-state="copied"] .code-copy-icon { display: none; }
+.code-copy-button[data-state="copied"] .code-copy-success-icon { display: block; }
+
+.code-copy-button[data-state="failed"] {
+  color: #ff7b72;
 }
 
 .prose blockquote {
@@ -587,11 +652,9 @@ button { color: inherit; }
 
 @media (max-width: 47.5rem) {
   .header-inner {
-    grid-template-areas:
-      "brand theme"
-      "search search";
-    grid-template-columns: 1fr auto;
-    gap: var(--space-1) var(--space-3);
+    grid-template-areas: "brand search theme";
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-3);
   }
 
   .search { width: 100%; }
@@ -603,11 +666,11 @@ button { color: inherit; }
 @media (max-width: 32rem) {
   .page-shell,
   .header-inner,
+  .breadcrumbs ol,
   .site-footer { width: min(var(--shell-width), calc(100% - var(--space-8))); }
 
   .wordmark > span:last-child { display: none; }
   .search-control kbd { display: none; }
-  .content-page { padding-top: var(--space-6); }
 
   .course-entry { grid-template-columns: minmax(0, 1fr); }
   .course-entry-meta { grid-row: 2; }
