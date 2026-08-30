@@ -9,6 +9,7 @@ tags:
   - sql
 lessons:
   - postgresql/psql
+  - postgresql/schemas
   - postgresql/transactions-and-isolation-levels
   - postgresql/foreign-keys
   - postgresql/explain-and-query-planning
