@@ -2,7 +2,7 @@
 slug: postgresql
 title: PostgreSQL Data Integrity, Performance, and Concurrency
 catalogOrder: 60
-description: Learn how PostgreSQL enforces relationships, plans queries, uses indexes and MVCC, coordinates concurrent work, and stores JSONB data.
+description: Learn how PostgreSQL controls access, enforces relationships, plans queries, uses indexes and MVCC, coordinates concurrent work, and stores JSONB data.
 tags:
   - postgresql
   - databases
@@ -10,6 +10,7 @@ tags:
 lessons:
   - postgresql/psql
   - postgresql/schemas
+  - postgresql/roles-and-privileges
   - postgresql/transactions-and-isolation-levels
   - postgresql/foreign-keys
   - postgresql/explain-and-query-planning
@@ -20,7 +21,7 @@ lessons:
   - postgresql/jsonb
 ---
 
-PostgreSQL provides several complementary tools for keeping data correct while applications read and modify it concurrently. Transactions define units of work, constraints protect relationships, query plans and indexes shape performance, and MVCC controls which row versions each statement can see. Explicit locks coordinate competing operations, while JSONB supports data whose structure does not fit a fixed set of columns.
+PostgreSQL provides several complementary tools for keeping data correct while applications read and modify it concurrently. Roles and privileges control access, transactions define units of work, constraints protect relationships, query plans and indexes shape performance, and MVCC controls which row versions each statement can see. Explicit locks coordinate competing operations, while JSONB supports data whose structure does not fit a fixed set of columns.
 
 This course introduces those tools through focused examples and practical decision rules. You will learn what each feature guarantees, what it costs, and when to use it without weakening correctness or creating avoidable contention.
 
