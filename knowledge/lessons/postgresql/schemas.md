@@ -1,7 +1,7 @@
 ---
 slug: postgresql/schemas
 title: Postgres Schemas
-description: Organize PostgreSQL objects with schemas, qualified names, predictable search paths, and explicit namespace privileges.
+description: Organize PostgreSQL objects with schemas, qualified names, and predictable search paths.
 tags:
   - postgresql
   - databases
@@ -130,22 +130,6 @@ An unqualified name is concise, but its meaning depends on session state. Use ex
 
 A writable schema in `search_path` is also a trust boundary. A role with `CREATE` on that schema can add an object whose name shadows one expected by another query. Do not include schemas writable by untrusted roles in a privileged session's path.
 
-Schema permissions and object permissions solve different parts of access control:
-
-- `USAGE` on a schema allows a role to look up objects in that namespace.
-- `CREATE` on a schema allows a role to create new objects there.
-- Privileges such as `SELECT` or `UPDATE` on a table are still required separately.
-
-For example, assuming a role named `app_reader` already exists, read access requires both namespace and table grants:
-
-```sql
-GRANT USAGE ON SCHEMA course_app TO app_reader;
-GRANT SELECT ON ALL TABLES IN SCHEMA course_app TO app_reader;
-REVOKE CREATE ON SCHEMA course_app FROM app_reader;
-```
-
-Use `\dn+ course_app` in `psql` to inspect schema ownership and access privileges. Schema ownership does not imply that the same role owns every object inside it, so review both levels when diagnosing permission errors.
-
 ## Move and remove objects deliberately
 
 An existing object can move to another schema without recreating its data:
@@ -172,14 +156,12 @@ DROP SCHEMA course_app;
 - Qualify object names when identity must not depend on session configuration.
 - Keep `search_path` short, explicit, and free of schemas writable by untrusted roles.
 - Remember that the first existing path entry resolves unqualified creation targets.
-- Grant schema `USAGE` and object privileges separately; grant schema `CREATE` only to roles that should define objects.
 - Treat moving or dropping a schema as an identity and dependency change, not just folder maintenance.
 
 ## Official resources
 
 - [Schemas](https://www.postgresql.org/docs/current/ddl-schemas.html)
 - [`CREATE SCHEMA`](https://www.postgresql.org/docs/current/sql-createschema.html)
-- [Privileges](https://www.postgresql.org/docs/current/ddl-priv.html)
 - [`ALTER TABLE`](https://www.postgresql.org/docs/current/sql-altertable.html)
 - [`DROP SCHEMA`](https://www.postgresql.org/docs/current/sql-dropschema.html)
 
