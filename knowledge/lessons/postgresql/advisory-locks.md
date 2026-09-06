@@ -1,7 +1,7 @@
 ---
 slug: postgresql/advisory-locks
 title: Advisory Locks
-description: Coordinate application-defined PostgreSQL resources with stable lock keys, suitable lifetimes, and deliberate wait behavior.
+description: Coordinate application work with PostgreSQL advisory locks, stable numeric keys, and controlled lock lifetimes.
 tags:
   - postgresql
   - databases
@@ -9,11 +9,9 @@ tags:
   - locking
 ---
 
-Row and table locks protect database objects that PostgreSQL understands. Some operations need a different boundary: only one process should rebuild a report, schedule work for one tenant, or perform a transition that spans several tables but has no single row to lock.
+An **advisory lock** protects a numeric key chosen by an application. The key might represent a report rebuild or work for one tenant. PostgreSQL manages conflicting requests but does not know what the key means or automatically lock any rows.
 
-An **advisory lock** associates a PostgreSQL lock with an application-defined numeric key. PostgreSQL manages conflicts and waiting, but it does not know what the key represents and does not automatically lock any rows. The guarantee exists only when every participating code path follows the same key convention and acquires the lock before touching the resource.
-
-Use an ordinary constraint, atomic statement, or row lock when the rule maps naturally to stored data. Use an advisory lock when the resource or critical section belongs to the application's model rather than to one PostgreSQL row or table.
+Every caller must use the same key and acquire the lock before doing the protected work. Prefer a constraint, atomic statement, or row lock when it can express the rule directly. Advisory locks help when an operation has no suitable row or table to lock.
 
 ## Design a stable key convention
 
@@ -26,20 +24,20 @@ The two-integer form is convenient when one value identifies a resource type and
 (22, tenant_id) means "generate this tenant's monthly invoice batch"
 ```
 
-The numbers have no built-in meaning. Define their interpretation in one shared application module or database function, and keep these properties explicit:
+Define the keys in one shared application module or database function:
 
 - The same logical resource always produces the same key.
 - Unrelated resource types cannot accidentally produce the same key.
 - Every service that coordinates the resource uses the same convention.
 - The identifier fits the selected `integer` or `bigint` function signature.
 
-Avoid casually hashing arbitrary strings into a small key space. Different strings can collide, causing unrelated work to block. If a stable numeric identifier already exists, prefer it. If the application must encode several values into one `bigint`, document and test the encoding and its allowed ranges.
+Prefer an existing stable numeric identifier. Hashing strings can produce collisions, making unrelated work wait. If several values must fit into one `bigint`, document and test the encoding and allowed ranges.
 
 Advisory-lock keys are local to a database. Identical keys acquired in different databases do not coordinate with each other.
 
 ## Prefer a transaction-level lock for database work
 
-A **transaction-level advisory lock** lasts until the current transaction commits or rolls back. `pg_advisory_xact_lock` waits until it can acquire an exclusive lock:
+A **transaction-level advisory lock** is released when its transaction commits or rolls back. `pg_advisory_xact_lock` waits to acquire an exclusive lock. This application example assumes the two document tables and their columns already exist; the practice exercise below needs no tables:
 
 ```sql
 BEGIN;
@@ -60,49 +58,11 @@ COMMIT;
 
 If another transaction holds a conflicting lock on `(21, 7001)`, the `SELECT` waits. Work for `(21, 7002)` can proceed because it uses a different key. At `COMMIT` or `ROLLBACK`, PostgreSQL releases the transaction-level lock automatically; there is no transaction-level unlock function.
 
-The lock serializes only cooperating callers. An `UPDATE` that skips `pg_advisory_xact_lock(21, 7001)` can still change rows for tenant `7001`. Keep database constraints for invariants that must hold regardless of the caller.
+An `UPDATE` that skips this advisory lock can still change rows for tenant `7001`. Keep database constraints for rules that every writer must obey.
 
-You can observe the conflict without creating any tables. Keep this transaction open in session A:
+Use an explicit transaction: with autocommit, the lock is released when the locking statement finishes. Acquire it before reading the state needed for the decision. At `READ COMMITTED`, following statements get fresh snapshots after the previous holder finishes. Waiting for a lock does not refresh an existing `REPEATABLE READ` or `SERIALIZABLE` snapshot.
 
-```sql
-BEGIN;
-SELECT pg_advisory_xact_lock(21, 7001);
-```
-
-In session B, try the same key and then a different key:
-
-```sql
-BEGIN;
-
-SELECT pg_try_advisory_xact_lock(21, 7001) AS same_resource;
--- false
-
-SELECT pg_try_advisory_xact_lock(21, 7002) AS different_resource;
--- true
-
-ROLLBACK;
-```
-
-Commit session A, then repeat the first try inside a new transaction in session B. It now returns `true`. The explicit transaction blocks matter: a transaction-level lock acquired in an autocommitted statement is released as soon as that statement finishes.
-
-Acquire the lock before reading the state on which the protected decision depends. Under `READ COMMITTED`, for example, locking first ensures that the following statements begin after the previous holder's transaction finishes:
-
-```sql
-BEGIN;
-
-SELECT pg_advisory_xact_lock(22, 7001);
-
-SELECT count(*)
-FROM invoice_batches
-WHERE tenant_id = 7001
-  AND billing_month = DATE '2026-08-01';
-
--- Create the batch only when it does not exist.
-
-COMMIT;
-```
-
-The first lesson's transaction rules still apply. Keep the transaction short, retry the whole transaction after a deadlock or serialization failure, and encode a uniqueness rule as a database constraint when possible. The advisory lock can coordinate a workflow, but it should not be the only defense against invalid stored data.
+Keep transactions short and retry the whole transaction after a deadlock or serialization failure, as in the earlier transactions lesson.
 
 ## Choose waiting or fail-fast behavior
 
@@ -121,7 +81,7 @@ BEGIN;
 SELECT pg_try_advisory_xact_lock(21, 7001) AS acquired;
 ```
 
-The application must inspect `acquired`. If it is `false`, roll back without running the protected work. If it is `true`, perform the work and commit:
+Inspect `acquired`. If it is `false`, roll back without running the protected work. If it is `true`, perform the work and commit. This illustrative update assumes `tenant_search_state` already exists:
 
 ```sql
 -- Run only after acquired is true.
@@ -132,7 +92,7 @@ WHERE tenant_id = 7001;
 COMMIT;
 ```
 
-A blocking call is appropriate when every request must eventually run and the surrounding request has a sensible timeout and cancellation policy. A try call is often easier for scheduled jobs because another worker can treat `false` as "already running" rather than wait.
+A blocking call suits work that should wait, with a timeout and a way to cancel. Scheduled jobs can often treat `false` as "already running" and skip or reschedule.
 
 ## Use session-level locks deliberately
 
@@ -151,15 +111,15 @@ Session scope is useful when one coordinated operation intentionally spans sever
 - A transaction rollback does not release the lock.
 - Repeated acquisitions by the same session stack; each successful acquisition needs a matching unlock.
 - The lock is released when the session ends, but relying on disconnect as routine cleanup hides bugs.
-- With a connection pool, the code must retain the same physical database session through acquisition, protected work, and release. Returning a locked connection to the pool can block unrelated requests.
+- A connection pool reuses database connections. Keep the same physical session for acquisition, work, and release. Returning it to the pool with a lock held can block unrelated requests.
 
-Use structured cleanup such as a `finally` block in application code, verify that `pg_advisory_unlock` returns `true`, and reserve session-level locking for a requirement that cannot fit safely in one transaction. Transaction-level locks are simpler for ordinary database changes because PostgreSQL ties cleanup to the transaction boundary.
+After a successful acquisition, use guaranteed cleanup such as a `finally` block and check that `pg_advisory_unlock` returns `true`. Prefer transaction-level locks for work that fits in one transaction.
 
 ## Choose exclusive or shared mode
 
-The functions shown so far acquire **exclusive** advisory locks: only one session can hold the key in a conflicting mode. PostgreSQL also provides shared variants, including `pg_advisory_xact_lock_shared` and `pg_try_advisory_xact_lock_shared`.
+The functions above acquire **exclusive** locks, which conflict with all other sessions' locks on the same key. **Shared** locks allow several sessions to hold a key together. Use `pg_advisory_xact_lock_shared` or `pg_try_advisory_xact_lock_shared` for transaction-level shared locks.
 
-Multiple sessions may hold a shared lock on the same key simultaneously. An exclusive request conflicts with both shared and exclusive holders. This can model many compatible observers versus one exclusive maintainer, but it works only if readers and writers both participate in the convention.
+This can allow several readers or one exclusive maintainer, provided both readers and writers follow the same convention. The same conflict rules apply between session-level and transaction-level requests.
 
 Session-level shared locks use `pg_advisory_lock_shared`, `pg_try_advisory_lock_shared`, and the matching `pg_advisory_unlock_shared`. Do not unlock a shared acquisition with the exclusive unlock function.
 
@@ -180,7 +140,7 @@ COMMIT;
 
 Ordering by resource type and then numeric identifier is one possible convention. PostgreSQL will abort one transaction if a deadlock still forms; roll back and retry the complete operation.
 
-Be careful when calling lock functions over a query result. SQL expression evaluation order can cause PostgreSQL to acquire more locks than an attached `LIMIT` suggests. If `resource_id` follows the documented `integer` key convention, select the intended keys in a subquery first:
+When calling lock functions over query results, evaluation order can cause more locks than an attached `LIMIT` suggests. Select the intended keys in a subquery first. This pattern assumes `pending_rebuilds` exists and `resource_id` has type `integer`; run it inside the transaction containing the protected work:
 
 ```sql
 SELECT pg_advisory_xact_lock(21, selected.resource_id)
@@ -218,17 +178,7 @@ WHERE locktype = 'advisory'
 ORDER BY granted DESC, pid;
 ```
 
-`granted = false` identifies a waiting request. As in the previous lesson, use `pg_blocking_pids(pid)` to find the sessions ahead of a waiter. PostgreSQL stores the numeric key parts in `classid`, `objid`, and `objsubid`; your application key registry is what turns those numbers back into useful resource names.
-
-## Apply the decision rules
-
-- Prefer constraints, atomic statements, and row locks for rules tied directly to stored rows.
-- Use advisory locks only when every participating caller can follow the same application-defined protocol.
-- Give each resource a stable, collision-resistant numeric key and document its namespace.
-- Prefer transaction-level locks for work that fits in one transaction.
-- Use a try function when skipping or rescheduling is better than waiting.
-- Use session-level locks only with guaranteed same-session execution and balanced cleanup.
-- Acquire multiple keys in a consistent order, keep the protected section short, and monitor waits through `pg_locks`.
+`granted = false` identifies a waiting request. Use `pg_blocking_pids(pid)` to find its blockers. For two-integer keys, `classid` holds the first key, `objid` the second, and `objsubid` is `2`. For one `bigint`, `classid` and `objid` hold its high and low 32-bit halves, and `objsubid` is `1`.
 
 ## Official resources
 

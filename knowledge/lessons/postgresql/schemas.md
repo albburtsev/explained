@@ -9,9 +9,9 @@ tags:
   - security
 ---
 
-A PostgreSQL **schema** is a namespace inside one database. It groups named objects such as tables, views, types, sequences, and functions. Schemas do not create separate databases or storage boundaries: one connection can access objects in any schema of its current database when its role has the required privileges.
+A PostgreSQL **schema** is a namespace: a group of named objects inside one database. It can contain tables, views, types, sequences, and functions. One connection can access any schema in its database if its role has permission. Schemas do not separate storage and cannot be nested.
 
-Schemas are useful for separating application modules, third-party extensions, or objects with different owners. They also allow the same object name to exist more than once. A database can contain both `sales.events` and `audit.events` because the schema name makes each table's identity distinct. Schemas cannot be nested.
+Use schemas to separate application modules, extensions, or objects with different owners. They also allow names to repeat: `sales.events` and `audit.events` are different tables in the same database.
 
 ## Create and inspect schemas
 
@@ -57,20 +57,20 @@ SELECT * FROM course_app.events;
 SELECT * FROM course_audit.events;
 ```
 
-A qualified name never connects to another database. PostgreSQL connections access one database at a time; the qualifier only selects a schema inside that database.
+A name such as `course_app.events` selects a schema and table within the current database. It does not connect to another database.
 
 ## Understand `public`
 
-Every new database normally contains a schema named `public`. When earlier lessons created `terminal_notes` without a schema qualifier, PostgreSQL placed it in the current schema, which is commonly `public` in a default local database.
+New databases normally contain a schema named `public`. The previous lesson created `terminal_notes` without a schema qualifier, so PostgreSQL placed it in the current schema, usually `public` in the local setup.
 
-These commands refer to the same table when `public` is the current schema:
+With the course setup's default search path, these commands refer to the same table:
 
 ```sql
 SELECT * FROM terminal_notes;
 SELECT * FROM public.terminal_notes;
 ```
 
-There is no special storage behavior attached to `public`. It is a normal schema supplied as a convenient default. As a project grows, named application schemas make ownership and object boundaries clearer than putting everything in one namespace.
+`public` is a normal schema provided as a default. Named application schemas can make ownership and organization clearer as a project grows.
 
 ## Resolve unqualified names with `search_path`
 
@@ -84,7 +84,7 @@ SELECT
   current_schemas(true);
 ```
 
-The default setting is commonly `"$user", public`. The `$user` entry means a schema with the session user's name; PostgreSQL ignores that entry when no such schema exists. `current_schema()` reports the first existing schema in the path. Passing `true` to `current_schemas` also shows implicitly searched system schemas.
+The default is `"$user", public`. `$user` means a schema named after `current_user`, the active database role. PostgreSQL ignores schemas that do not exist or that the role lacks `USAGE` permission to access. `current_schema()` reports the first usable schema in the configured path. `current_schemas(true)` also includes implicitly searched system schemas.
 
 Change the path for the current session:
 
@@ -95,7 +95,7 @@ SELECT * FROM events;
 -- Returns the row from course_app.events.
 ```
 
-`course_app.events` wins because `course_app` appears before `course_audit`. The first existing schema in the path is also the destination for an unqualified `CREATE` command:
+PostgreSQL finds `course_app.events` first. The first usable schema in the path is also the destination for an unqualified `CREATE TABLE`:
 
 ```sql
 CREATE TABLE settings (
@@ -106,6 +106,8 @@ CREATE TABLE settings (
 SELECT current_schema();
 -- course_app
 ```
+
+The role also needs `CREATE` permission in that schema. Without it, creation fails; PostgreSQL does not try the next schema.
 
 Reverse the first two entries and the same unqualified table name resolves differently:
 
@@ -126,9 +128,9 @@ The system catalog schema `pg_catalog` is always searched. When it is not listed
 
 ## Prefer predictable object resolution
 
-An unqualified name is concise, but its meaning depends on session state. Use explicit schema qualification in migrations, administrative scripts, and security-sensitive code when selecting the wrong object would be dangerous. If an application relies on `search_path`, set a deliberate path for its database role or connection and test it instead of assuming the server default.
+An unqualified name depends on session settings. Qualify names in schema migrations, administrative scripts, and code where selecting the wrong object would be dangerous. If an application relies on `search_path`, set and test it explicitly.
 
-A writable schema in `search_path` is also a trust boundary. A role with `CREATE` on that schema can add an object whose name shadows one expected by another query. Do not include schemas writable by untrusted roles in a privileged session's path.
+A role with `CREATE` permission on a schema can add an object with a name another query expects to find elsewhere. Keep schemas writable by untrusted roles out of a privileged session's path.
 
 ## Move and remove objects deliberately
 
@@ -148,19 +150,12 @@ DROP SCHEMA course_app;
 -- ERROR: the schema is not empty
 ```
 
-`DROP SCHEMA course_app CASCADE` removes contained objects and can also remove dependent objects outside that schema. Inspect the target and dependencies before using `CASCADE`; it is appropriate for disposable local examples but should never be a reflexive production cleanup command.
-
-## Apply the design rules
-
-- Use schemas as logical namespaces inside one database, not as substitutes for separate databases.
-- Qualify object names when identity must not depend on session configuration.
-- Keep `search_path` short, explicit, and free of schemas writable by untrusted roles.
-- Remember that the first existing path entry resolves unqualified creation targets.
-- Treat moving or dropping a schema as an identity and dependency change, not just folder maintenance.
+`DROP SCHEMA course_app CASCADE` removes its objects and can remove dependent objects in other schemas. Inspect both before using it, especially outside a disposable local database.
 
 ## Official resources
 
 - [Schemas](https://www.postgresql.org/docs/current/ddl-schemas.html)
+- [`search_path` settings](https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-SEARCH-PATH)
 - [`CREATE SCHEMA`](https://www.postgresql.org/docs/current/sql-createschema.html)
 - [`ALTER TABLE`](https://www.postgresql.org/docs/current/sql-altertable.html)
 - [`DROP SCHEMA`](https://www.postgresql.org/docs/current/sql-dropschema.html)

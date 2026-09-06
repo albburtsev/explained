@@ -1,7 +1,7 @@
 ---
 slug: postgresql/jsonb
 title: JSONB
-description: Model flexible PostgreSQL data with JSONB, query and update documents safely, and index the access patterns that matter.
+description: Store variable attributes in JSONB, query and update documents, and choose suitable indexes.
 tags:
   - postgresql
   - databases
@@ -9,9 +9,9 @@ tags:
   - data-modeling
 ---
 
-Relational columns are a strong fit when a value has a stable type, participates in a relationship, or must satisfy a database rule. Some data is less regular: product-specific attributes, external API payloads, and event details may have different fields from one row to the next.
+**JSON** represents data as objects, arrays, and scalar values such as strings, numbers, and booleans. PostgreSQL's `jsonb` type stores it in a parsed binary form that supports queries, updates, and indexes.
 
-PostgreSQL's `jsonb` type stores valid JSON in a decomposed binary representation. It supports field extraction, structural containment, updates, and indexes. That flexibility works best inside a deliberate relational design, not as a replacement for every column.
+JSONB suits variable data, such as product attributes or external API responses. Keep values with stable types, relationships, or database rules in ordinary columns.
 
 ## Choose `jsonb` deliberately
 
@@ -24,7 +24,7 @@ PostgreSQL provides both `json` and `jsonb`. They accept almost the same input, 
 
 Most application data that will be processed inside PostgreSQL should use `jsonb`. Do not rely on object key order with either type: JSON objects represent named members, not an ordered record format.
 
-A useful design keeps stable identity and rules relational while leaving genuinely variable attributes in JSONB:
+For a product, keep its identifier, stock-keeping unit (`sku`), and name in columns, with variable attributes in JSONB:
 
 ```sql
 CREATE TABLE products (
@@ -37,7 +37,7 @@ CREATE TABLE products (
 );
 ```
 
-The `sku` remains a normal column because it needs uniqueness and will be addressed directly. The check prevents callers from storing a JSON array, scalar, or JSON `null` where the application expects an object.
+`sku` has a uniqueness constraint. The check requires `attributes` to be an object, rejecting arrays, scalars, and JSON `null`.
 
 Insert two products with different attribute sets:
 
@@ -84,11 +84,11 @@ SELECT
 FROM products;
 ```
 
-For the mug, the missing `dimensions.weight_kg` path produces SQL `NULL` rather than an error. The numeric cast therefore also returns null. A present value with incompatible text, such as `"heavy"`, would fail the cast. If a field must always be numeric, enforce that rule or promote it to a typed column instead of trusting every writer.
+The mug has no `dimensions.weight_kg`, so extraction and the numeric cast return SQL `NULL`. A value such as `"heavy"` would fail the cast. If the field must be numeric, enforce that rule or use a typed column.
 
 Three states can otherwise look similar:
 
-- a SQL `NULL` means the whole SQL value is absent;
+- SQL `NULL` marks a missing or unknown SQL value;
 - JSON `null` is a value stored inside a JSON document;
 - a missing key is not part of the document.
 
@@ -103,11 +103,11 @@ SELECT
 FROM products;
 ```
 
-For a missing key, both extraction forms return SQL `NULL` and the existence test is false. For a key whose value is JSON `null`, `->` returns the JSONB value `null`, `->>` returns SQL `NULL`, and the existence test is true. Prefer a consistent application convention, such as omitting unknown optional fields, and use `?` when presence itself matters.
+Both sample products lack this key, so both extractions return SQL `NULL` and `?` returns false. If the key holds JSON `null`, `->` returns JSONB `null`, `->>` returns SQL `NULL`, and `?` returns true. Use a consistent convention for optional fields and check `?` when presence matters.
 
 ## Search by structure
 
-The containment operator `@>` asks whether the JSONB value on the left contains the structure and values on the right. It is often clearer than extracting several fields separately:
+The **containment** operator `@>` checks whether the left JSONB value contains the structure and values on the right:
 
 ```sql
 SELECT sku, name
@@ -128,7 +128,7 @@ FROM products
 WHERE attributes ? 'dimensions';
 ```
 
-Use explicit extraction, containment, or PostgreSQL's `jsonpath` operators when a nested condition is required. Prefer the simplest form that expresses the application's access pattern.
+Use extraction or containment for nested conditions. PostgreSQL also offers `jsonpath`, a language for expressing paths and conditions inside JSON documents.
 
 ## Update without replacing the document by hand
 
@@ -145,7 +145,7 @@ SET attributes = jsonb_set(
 WHERE sku = 'BAG-001';
 ```
 
-The path uses object keys here, although numeric path components can address zero-based array positions. The final `false` tells `jsonb_set` not to create a missing final member. Every earlier path component must already exist; otherwise the original value is returned unchanged. Check the affected row and resulting document when a missing path should be an application error.
+The path uses object keys; numeric components can address array positions starting at zero. The final `false` prevents creation of a missing final member. Earlier path components must also exist, or the value stays unchanged. Check the resulting document if a missing path should be an error; the row count alone does not show whether the path changed.
 
 The concatenation operator `||` is convenient for adding or replacing top-level members:
 
@@ -157,11 +157,11 @@ WHERE sku = 'BAG-001';
 
 For objects, a key from the right-hand value replaces the same top-level key on the left. This is not a recursive merge, so use `jsonb_set` when the intended change is nested.
 
-A targeted JSONB expression does not turn storage into an in-place field update. The `UPDATE` still locks the row, creates a new row version under MVCC, and maintains affected indexes. Keep documents to a manageable size, and move independently updated or heavily contended data into separate rows or columns.
+Updating one JSONB field still locks the whole row, creates a new row version under MVCC, and maintains affected indexes. Keep documents reasonably small. Move data that needs independent concurrent updates into separate rows; separate columns in the same row still share its row lock.
 
 ## Index the query shape
 
-The earlier indexing lesson's rule still applies: start with a real query, then choose an index whose access method and expression support it. A GIN index on the complete document supports common containment, key-existence, and `jsonpath` searches:
+Choose indexes for the queries you need, as in the indexing lesson. A GIN index on the whole document supports containment, key-existence, and suitable `jsonpath` searches:
 
 ```sql
 CREATE INDEX products_attributes_gin
@@ -172,14 +172,14 @@ FROM products
 WHERE attributes @> '{"color": "black"}'::jsonb;
 ```
 
-The default `jsonb_ops` operator class supports `@>`, `?`, `?|`, `?&`, `@?`, and `@@`. The alternative `jsonb_path_ops` supports only `@>`, `@?`, and `@@`, but its indexes are usually smaller and its supported searches can be more specific. Choose it only when observed queries do not need the key-existence operators:
+The default `jsonb_ops` supports `@>`, key-existence operators (`?`, `?|`, `?&`), and `jsonpath` operators (`@?`, `@@`). The alternative `jsonb_path_ops` supports `@>`, `@?`, and `@@`, but not key-existence operators. Its indexes are usually smaller and can make supported searches faster:
 
 ```sql
 CREATE INDEX products_attributes_path_gin
 ON products USING GIN (attributes jsonb_path_ops);
 ```
 
-Do not keep both broad indexes without evidence: each consumes storage and adds write work.
+Treat this as an alternative to the first index. Keep both only if measurements justify their storage and write costs.
 
 For a frequently queried scalar, a targeted expression index can be smaller and can support ordinary B-tree comparisons. The query must use the indexed expression consistently:
 
@@ -192,23 +192,20 @@ FROM products
 WHERE (attributes #>> '{dimensions,weight_kg}')::numeric < 2;
 ```
 
-This index also makes invalid numeric values a write-time problem because PostgreSQL must evaluate the cast while maintaining the index. When a value is important enough to need reliable typing, range searches, constraints, or joins, a dedicated typed column is usually the clearer model.
+PostgreSQL evaluates the cast when building and maintaining this index, so invalid numeric values cause errors then too. If a field needs reliable typing, range searches, constraints, or joins, a typed column is usually clearer.
 
 As with any small example, PostgreSQL may prefer a sequential scan because reading the whole table is cheaper. Use `EXPLAIN` with representative data before deciding whether an index helps the production workload.
 
 ## Set a boundary for flexible data
 
-Use JSONB when fields vary naturally between records or arrive from a source whose shape evolves. Keep a regular structure within each document even when PostgreSQL does not enforce every member. Predictable shapes make queries, indexes, migrations, and application code simpler.
+Keep document structure predictable even when fields vary between rows. Consistent shapes simplify queries, indexes, and application code.
 
 Keep a value in a normal column when it:
 
 - identifies a row or participates in a foreign key;
 - needs `NOT NULL`, uniqueness, or a stable scalar type;
 - appears frequently in joins, grouping, ordering, or range filters;
-- changes independently and often;
 - must be easy for every writer and reporting tool to discover.
-
-JSONB and relational modeling are complementary. Put durable invariants in columns and constraints, then use JSONB for the variable part of the record and index only the access patterns that justify their cost.
 
 ## Official resources
 

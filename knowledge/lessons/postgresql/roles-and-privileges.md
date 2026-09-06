@@ -9,19 +9,16 @@ tags:
   - access-control
 ---
 
-PostgreSQL uses **roles** for both people and groups of permissions. A role can own database objects, receive privileges, and belong to other roles. A role with the `LOGIN` attribute can also start a database session and is what PostgreSQL commonly calls a user.
-
-Keeping identity and permissions separate makes access easier to reason about:
+A **role** is a PostgreSQL identity that can own objects, receive permissions, and belong to other roles. Roles serve two common purposes:
 
 - A **login role** identifies a person or application that connects.
-- A **group role** normally has no `LOGIN` attribute and collects privileges for a job such as reading reports or editing catalog data.
-- **Object privileges** allow specific operations on databases, schemas, tables, sequences, and other objects.
+- A **group role** normally cannot log in. It collects permissions for a job, such as reading reports.
 
-The goal is least privilege: give each login only the capabilities it needs, preferably through membership in a small number of group roles.
+**Object privileges** allow specific operations, such as reading a table. Follow **least privilege**: give each login only the permissions its work needs, usually through group membership.
 
 ## Create roles for identities and capabilities
 
-Role-management commands require a superuser or an appropriately authorized role with `CREATEROLE`. In the local course database, create one login role and two group roles:
+Creating roles requires a superuser or a role with `CREATEROLE`. For these examples, connect as the local superuser created by the course setup. Create one login role and two group roles:
 
 ```sql
 CREATE ROLE app_ada LOGIN;
@@ -29,11 +26,11 @@ CREATE ROLE catalog_reader;
 CREATE ROLE catalog_editor;
 ```
 
-`CREATE ROLE` defaults to `NOLOGIN`, so `catalog_reader` and `catalog_editor` are useful as permission bundles but cannot initiate a connection. `CREATE USER app_ada` would be an alternative spelling of `CREATE ROLE app_ada LOGIN`.
+`CREATE ROLE` defaults to `NOLOGIN`, so the group roles cannot connect. `CREATE USER app_ada` is another spelling of `CREATE ROLE app_ada LOGIN`.
 
 `LOGIN` makes a role eligible to start a session; the server's authentication configuration still determines whether a particular connection is accepted. The examples below use `SET ROLE` to test authorization without changing authentication settings.
 
-Roles belong to the PostgreSQL cluster, not to one database. Object privileges, however, apply to objects inside a particular database. Creating `app_ada` therefore makes the role known across the cluster but does not automatically give it access to every table.
+Roles belong to a **cluster**, the databases managed by one PostgreSQL server instance. Creating `app_ada` makes it known across those databases but does not give it access to their tables. Object privileges apply to the particular objects named in a grant.
 
 Inspect roles and their attributes in `psql`:
 
@@ -63,7 +60,7 @@ Grant it again for the remaining examples:
 GRANT catalog_reader TO app_ada;
 ```
 
-`SET ROLE` changes the active role for the current session. An administrator can use it to test the effective permissions of the new login without opening another connection:
+`SET ROLE` changes the session's active role. As the local superuser, test the new login's permissions without opening another connection:
 
 ```sql
 SET ROLE app_ada;
@@ -73,7 +70,7 @@ SELECT session_user, current_user;
 RESET ROLE;
 ```
 
-`session_user` remains the role that opened the connection, while `current_user` becomes `app_ada` until `RESET ROLE`. Membership and `SET ROLE` are related but not identical: inherited privileges are normally available immediately, while explicitly switching roles also changes which role owns newly created objects.
+`session_user` remains the role that opened the connection; `current_user` becomes `app_ada` until `RESET ROLE`. Inherited privileges are normally available without switching roles. Switching also changes the owner of objects created afterward. Ordinary roles need membership with the `SET` option to switch to another role.
 
 ## Grant access to both the namespace and the object
 
@@ -92,7 +89,7 @@ INSERT INTO course_catalog.books (isbn, title)
 VALUES ('978-0-00-000001-1', 'Reliable SQL');
 ```
 
-Schema and table privileges protect different operations. `USAGE` on a schema permits a role to resolve objects inside that namespace. A table privilege such as `SELECT` or `UPDATE` permits the corresponding operation on the table. A role needs both gates to pass:
+`USAGE` on a schema allows a role to look up its objects. A table privilege such as `SELECT` allows an operation on that table. Grant both:
 
 ```sql
 GRANT USAGE ON SCHEMA course_catalog TO catalog_reader;
@@ -136,7 +133,7 @@ Use `psql` to inspect schema and relation access controls:
 
 ## Understand ownership and effective access
 
-The role that creates an object normally owns it. An owner can alter or drop the object and is always treated as able to grant its privileges. Ownership is therefore stronger than an ordinary `GRANT`; revoking table privileges from the owner does not create a durable security boundary.
+An object's creator normally owns it. An owner can alter or drop it and grant its privileges again after revocation. Keep ownership with controlled deployment roles, because revoking privileges cannot reliably restrict an owner.
 
 A role's effective access is the combination of privileges granted:
 
@@ -144,7 +141,7 @@ A role's effective access is the combination of privileges granted:
 - through every inherited role membership;
 - to `PUBLIC`, the implicit group containing every role.
 
-This means one `REVOKE` might not remove access if another path still supplies it. Inspect memberships and object access controls before concluding that a role has lost a capability.
+One `REVOKE` may leave access available through another path. Check all three when diagnosing permissions.
 
 Only an object owner, a superuser, or a role holding the relevant grant option can normally pass an object privilege to another role. Avoid `WITH GRANT OPTION` unless the recipient is intentionally responsible for delegating that access.
 
@@ -157,7 +154,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA course_catalog
 GRANT SELECT ON TABLES TO catalog_reader;
 ```
 
-This changes the defaults only for objects created later by the role that runs the command. It does not modify existing tables and does not affect tables created by another owner. If several deployment roles create objects, configure defaults for each relevant creator with `FOR ROLE`, executed by an authorized administrator. For example, assuming `catalog_owner` already exists:
+This affects only future tables created by the role running the command. Existing tables and other creators' defaults stay unchanged. An authorized administrator can use `FOR ROLE` to configure another creator's defaults. The following example assumes a role named `catalog_owner` already exists:
 
 ```sql
 ALTER DEFAULT PRIVILEGES FOR ROLE catalog_owner
@@ -165,17 +162,7 @@ IN SCHEMA course_catalog
 GRANT SELECT ON TABLES TO catalog_reader;
 ```
 
-Use ordinary `GRANT` for existing objects and `ALTER DEFAULT PRIVILEGES` for future ones. Treat both as part of the deployment that creates or changes the schema so a new object does not accidentally appear with the wrong access.
-
-## Apply the access-control rules
-
-- Use login roles for identities and non-login roles for reusable permission bundles.
-- Grant membership instead of duplicating object grants across many logins.
-- Give roles only the attributes and object privileges their work requires.
-- Remember that using a table in a schema requires the appropriate privileges on both objects.
-- Check direct grants, inherited memberships, and `PUBLIC` when diagnosing effective access.
-- Configure existing-object grants and future-object defaults separately.
-- Keep object ownership in controlled deployment or owner roles rather than ordinary application logins.
+Include grants and default privileges in schema deployments so both existing and future objects have the intended access.
 
 ## Official resources
 

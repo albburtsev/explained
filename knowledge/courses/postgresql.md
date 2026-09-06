@@ -2,7 +2,7 @@
 slug: postgresql
 title: PostgreSQL Data Integrity, Performance, and Concurrency
 catalogOrder: 60
-description: Learn how PostgreSQL controls access, enforces relationships, plans queries, uses indexes and MVCC, coordinates concurrent work, and stores JSONB data.
+description: Use PostgreSQL to control access, protect relationships, tune queries, coordinate concurrent work, and store flexible JSONB data.
 tags:
   - postgresql
   - databases
@@ -21,9 +21,9 @@ lessons:
   - postgresql/jsonb
 ---
 
-PostgreSQL provides several complementary tools for keeping data correct while applications read and modify it concurrently. Roles and privileges control access, transactions define units of work, constraints protect relationships, query plans and indexes shape performance, and MVCC controls which row versions each statement can see. Explicit locks coordinate competing operations, while JSONB supports data whose structure does not fit a fixed set of columns.
+Learn to keep PostgreSQL data correct and queries efficient while multiple sessions work at the same time. Start with the `psql` terminal client, schemas, and access control. Then use transactions and foreign keys, measure query plans, and design indexes. The final lessons explain row versions, vacuum, locks, and JSONB.
 
-This course introduces those tools through focused examples and practical decision rules. You will learn what each feature guarantees, what it costs, and when to use it without weakening correctness or creating avoidable contention.
+Each lesson includes SQL examples and a local exercise to explore the feature's guarantees and costs.
 
 ## Install and run PostgreSQL on macOS
 
@@ -35,7 +35,7 @@ Install [PostgreSQL 18](https://formulae.brew.sh/formula/postgresql%4018):
 brew install postgresql@18
 ```
 
-The versioned formula is keg-only, so add its command-line tools to your zsh path:
+Homebrew does not put this version's commands on your shell's search path automatically. Add them to your zsh configuration:
 
 ```sh
 echo 'export PATH="$(brew --prefix postgresql@18)/bin:$PATH"' >> ~/.zshrc

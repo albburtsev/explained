@@ -1,7 +1,7 @@
 ---
 slug: postgresql/indexes
 title: Indexes
-description: Design PostgreSQL indexes around real query shapes, verify their plans, and account for their write and deployment costs.
+description: Match PostgreSQL indexes to queries, measure their effect, and account for storage, writes, and index builds.
 tags:
   - postgresql
   - databases
@@ -9,9 +9,9 @@ tags:
   - indexes
 ---
 
-An **index** is a separate data structure that gives PostgreSQL another way to find or order rows. Without a suitable index, PostgreSQL may have to inspect an entire table. With one, it may navigate directly to a much smaller set of candidate rows.
+An **index** is a separate data structure that helps PostgreSQL find or order rows. It can reduce how much of a table a query needs to read.
 
-An index is an option, not an instruction. The planner compares available paths and may still choose a sequential scan when a table is small, a condition matches many rows, or its estimates make the scan cheaper. Use the `EXPLAIN` workflow from the previous lesson to judge a concrete query rather than treating every sequential scan as a defect.
+The planner decides whether to use it. A sequential scan may cost less for a small table or a condition matching many rows. Use the previous lesson's `EXPLAIN` workflow to measure each query.
 
 ## Measure a query before adding an index
 
@@ -68,9 +68,9 @@ ON index_orders (customer_id, placed_at DESC);
 
 Run the plan a third time. PostgreSQL can start at entries for customer `42`, read them in descending timestamp order, and stop after 20 rows. Depending on the data and cache state, you may see an `Index Scan` without a separate sort.
 
-Column order matters in a multicolumn B-tree. It is most efficient when the query constrains the leading columns: equality conditions on the leading columns, followed by a range or ordering requirement, are a common pattern. PostgreSQL can sometimes use conditions on later columns through other techniques, but do not assume that `(customer_id, placed_at)` replaces an index needed for frequent searches on `placed_at` alone. Verify each important query shape.
+Column order matters. A multicolumn B-tree is usually most efficient with equality conditions on its leading columns, followed by a range or ordering condition. PostgreSQL can sometimes use later columns without a leading condition. Even so, measure searches on `placed_at` alone before assuming `(customer_id, placed_at)` covers them well.
 
-Avoid keeping the first index automatically. The second index begins with `customer_id` and can often serve simple customer lookups too. If plans for the real workload confirm that, the single-column index is redundant and only adds storage and write work.
+The second index can often serve simple customer lookups too. If plans confirm this across the workload, remove the redundant single-column index to avoid extra storage and write work.
 
 ## Use specialized indexes deliberately
 
@@ -78,50 +78,56 @@ The default B-tree covers many workloads, but PostgreSQL offers other index meth
 
 - **B-tree** handles equality, ranges, null tests, and ordered retrieval.
 - **Hash** handles equality only.
-- **GIN** is an inverted index for values with components, including arrays, full-text search data, and suitable JSONB operators. The later JSONB lesson applies it to document queries.
+- **GIN** is an inverted index: it maps components of a value to matching rows. It supports arrays, full-text search, and suitable JSONB operators.
 - **GiST** and **SP-GiST** support extensible strategies such as geometric, range, and nearest-neighbor searches, depending on the operator class.
-- **BRIN** stores summaries for physical block ranges. It can be compact and effective on very large tables when indexed values correlate with row storage order, such as an append-only timestamp.
+- **BRIN** summarizes ranges of table blocks. It can be small and effective when indexed values follow physical row order, such as timestamps in a table that mainly receives new rows at the end.
 
-The index method is only half of the match. Its **operator class** determines which operators the index supports for a data type. Before choosing a non-default method, begin with the exact `WHERE`, `JOIN`, or `ORDER BY` operators and check that the intended operator class supports them.
+An **operator class** defines which operators an index supports for a data type. Check the operators in the query's `WHERE`, `JOIN`, and `ORDER BY` clauses before choosing a method.
 
-Three definitions solve common cases without indexing every row and column.
-
-An **expression index** stores the result of a repeated expression. This index supports case-insensitive email lookup and enforces case-insensitive uniqueness:
+An **expression index** stores a calculated value. Create a temporary table to try case-insensitive email lookup and uniqueness:
 
 ```sql
+CREATE TEMP TABLE users (
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email text NOT NULL
+);
+
 CREATE UNIQUE INDEX users_email_lower_uniq
 ON users (lower(email));
 
+INSERT INTO users (email)
+VALUES ('Ada@example.com');
+
 SELECT id
 FROM users
-WHERE lower(email) = lower('Ada@example.com');
+WHERE lower(email) = lower('ada@example.com');
 ```
 
-The query expression must match what the index stores. Computing and maintaining that expression adds write cost.
+The query uses the indexed expression, `lower(email)`. Computing and maintaining it adds write cost.
 
-A **partial index** includes only rows satisfying its predicate. If pending orders are a small, frequently queried subset, this index is smaller than indexing all statuses:
+A **partial index** includes only rows matching its predicate, the condition after `WHERE`. Return to `index_orders` to index only pending orders:
 
 ```sql
 CREATE INDEX orders_pending_customer_time_idx
-ON orders (customer_id, placed_at DESC)
+ON index_orders (customer_id, placed_at DESC)
 WHERE status = 'pending';
 ```
 
 A query can use it only when PostgreSQL can prove at planning time that the query condition implies `status = 'pending'`. Keep the predicate aligned with stable workload conditions; differently written or parameterized conditions may not establish that implication.
 
-A **covering index** uses `INCLUDE` to store payload columns that are returned but are not search keys:
+A **covering index** contains all columns a query needs. `INCLUDE` adds columns that can be returned but are not search keys:
 
 ```sql
 CREATE INDEX orders_customer_time_cover_idx
-ON orders (customer_id, placed_at DESC)
-INCLUDE (total, status);
+ON index_orders (customer_id, placed_at DESC)
+INCLUDE (id, total, status);
 ```
 
-This can enable an index-only scan when all required columns are available in the index and PostgreSQL can determine row visibility without visiting the table. It does not guarantee one: recently changed heap pages often still need visits. Included columns also enlarge the index, so add only narrow payloads for measured, important queries.
+This contains every column needed by the earlier latest-orders query. An **index-only scan** can avoid reading table pages when PostgreSQL also knows the rows are visible to the transaction. Recently changed pages may still need visits to check visibility. Included columns enlarge the index, so measure whether avoiding table reads justifies them.
 
 ## Separate performance from correctness
 
-PostgreSQL automatically creates unique B-tree indexes for primary-key and unique constraints. Do not create a duplicate index on the same keys. Prefer a constraint when the rule is part of the data model because it states the intent directly:
+PostgreSQL creates unique B-tree indexes for primary-key and unique constraints. Do not add duplicate indexes on the same keys. For uniqueness on ordinary columns, a constraint states the rule directly. This alternative compares `email` as stored, unlike the earlier index on `lower(email)`:
 
 ```sql
 ALTER TABLE users
@@ -134,32 +140,20 @@ An ordinary non-unique index improves possible access paths but never guarantees
 
 ## Account for lifecycle costs
 
-Every index consumes storage and must be updated when relevant rows are inserted, deleted, or changed. More indexes can make reads faster while making writes and vacuum work heavier. Before adding one, identify the important query shape and compare its plan under representative data. After adding it, verify that execution improves and that the results remain correct.
+Indexes consume storage and add work to writes and cleanup. Compare plans using representative data, check that results remain correct, and keep only indexes whose benefits justify those costs.
 
-For an existing busy table, a normal index build allows reads but blocks writes until the build finishes. PostgreSQL provides a production-oriented alternative:
+On a permanent table, a normal index build allows reads but blocks writes until it finishes. `CONCURRENTLY` allows writes during the build. For example, if the foreign-key lesson's `orders` table did not yet have its supporting index, you could build it this way:
 
 ```sql
-CREATE INDEX CONCURRENTLY orders_customer_time_idx
-ON orders (customer_id, placed_at DESC);
+CREATE INDEX CONCURRENTLY orders_customer_id_idx
+ON orders (customer_id);
 ```
 
-`CONCURRENTLY` permits normal writes during the build, but performs more work, usually takes longer, and cannot run inside a transaction block. A failed concurrent build can leave an invalid index that is ignored for queries but still costs write work. Check the operation's result and the index state; PostgreSQL recommends dropping the invalid index and retrying, or rebuilding it with `REINDEX INDEX CONCURRENTLY`.
+Skip this command if that index already exists. Temporary tables always use non-concurrent builds because other sessions cannot access them.
 
-Do not remove an apparently unused index from one observation. Statistics such as `idx_scan` in `pg_stat_user_indexes` cover only the period since statistics were reset, and indexes may also enforce constraints or support infrequent critical operations. Review a representative observation window, constraint ownership, duplicate prefixes, index size, and important plans before removal.
+A concurrent build does more work, usually takes longer, and cannot run inside a transaction block. Failure can leave an invalid index that queries ignore but writes still maintain. Check the result with `\d orders`. Recover by dropping the invalid index and retrying, or by using `REINDEX INDEX CONCURRENTLY`.
 
-## Apply an evidence-based checklist
-
-For each proposed index:
-
-1. Start from a frequent or costly query, not from a column in isolation.
-2. Match key order, expressions, predicate, and operator class to that query.
-3. Compare `EXPLAIN (ANALYZE, BUFFERS)` before and after under representative data.
-4. Check whether an existing index or constraint already covers the need.
-5. Keep only the columns that contribute enough value to justify storage and write cost.
-6. Choose a deployment method appropriate for the table's write traffic and verify the finished index.
-7. Revisit the choice as data distribution and workload change.
-
-The goal is not to maximize the number of index scans. It is to give PostgreSQL useful access paths for real workloads while keeping their maintenance cost deliberate.
+Before removing an index, observe it over a representative period. `idx_scan` in `pg_stat_user_indexes` counts scans only since statistics were reset. Also check whether the index enforces a constraint, supports rare but critical operations, or serves queries another index cannot handle efficiently.
 
 ## Official resources
 

@@ -1,7 +1,7 @@
 ---
 slug: postgresql/row-and-table-locks
 title: Row and Table Locks
-description: Coordinate concurrent PostgreSQL work with row and table locks, avoid unnecessary contention, and diagnose blocked transactions.
+description: Use PostgreSQL row and table locks, prevent deadlocks, and find blocked transactions.
 tags:
   - postgresql
   - databases
@@ -9,14 +9,14 @@ tags:
   - locking
 ---
 
-MVCC lets ordinary reads and writes proceed concurrently, but some operations must reserve data before deciding what to change. A **lock** makes incompatible work wait until the transaction holding the lock ends. PostgreSQL acquires many locks automatically; explicit locking is useful when a multi-statement decision needs a guarantee that MVCC alone does not provide.
+MVCC lets ordinary reads use snapshots while writes proceed. Some decisions also need to prevent concurrent changes. A **lock** makes incompatible operations wait. PostgreSQL takes many locks automatically; explicit locks can protect decisions that span several statements.
 
 The scope matters:
 
 - A **row-level lock** coordinates changes to selected rows. It does not block an ordinary `SELECT`, but it can block another transaction that tries to update, delete, or lock the same rows incompatibly.
 - A **table-level lock** coordinates access to a whole table. PostgreSQL takes one for every table a statement touches, even when the statement also locks individual rows.
 
-Locks normally last until `COMMIT` or `ROLLBACK`, so the transaction boundary from the first lesson is also the lock lifetime.
+Row and table locks normally last until `COMMIT` or `ROLLBACK`. Keep the transaction boundary from the transactions lesson in mind when deciding how long to hold one.
 
 ## Lock a row before making a decision
 
@@ -50,7 +50,9 @@ WHERE product_id = 101;
 COMMIT;
 ```
 
-While session A is open, an ordinary `SELECT` in session B can still read the last committed row version. A competing `UPDATE`, `DELETE`, or `SELECT ... FOR UPDATE` for product `101` waits. Under the default `READ COMMITTED` isolation level, a waiting `SELECT ... FOR UPDATE` locks and returns the current version after session A finishes.
+While session A holds the lock, an ordinary `SELECT` in session B can read the last committed row version. A competing `UPDATE`, `DELETE`, or `SELECT ... FOR UPDATE` for product `101` waits.
+
+At `READ COMMITTED`, a waiting locking read uses the updated row after session A finishes, if it still matches `WHERE`. A deleted row is not returned. At `REPEATABLE READ` or `SERIALIZABLE`, a row changed since the snapshot can instead cause a serialization failure.
 
 The `WHERE` clause defines the lock scope. Select only rows the transaction actually needs, and support the lookup with an appropriate index so PostgreSQL can find them efficiently. A row lock may also cause a disk write because PostgreSQL marks the row as locked.
 
@@ -68,9 +70,9 @@ WHERE product_id = 101
 RETURNING stock;
 ```
 
-PostgreSQL automatically locks a row that it updates. The application can treat one returned row as success and zero returned rows as insufficient stock or an unknown product. This atomic form has a shorter lock lifetime and removes the gap between checking and changing data.
+At `READ COMMITTED`, PostgreSQL automatically locks the row it updates and rechecks `stock >= 3` after waiting for a concurrent update. One returned row means success; zero means insufficient stock or an unknown product. Checking and changing happen in one statement. With autocommit, the lock ends when the statement's transaction finishes.
 
-Use a locking read when the decision cannot be expressed clearly in one statement, when several later statements depend on the same row, or when an external caller must choose among database changes. Even then, keep non-database work outside the locked transaction whenever possible.
+Use a locking read when a decision needs several statements based on the same row. Keep work that does not need the database outside the locked transaction where possible.
 
 ## Choose the weakest sufficient row lock
 
@@ -83,7 +85,7 @@ PostgreSQL offers four strengths in a `SELECT` locking clause:
 | `FOR SHARE` | Allows other shared row locks but blocks updates and deletes. | Multiple transactions may inspect a row while preventing changes. |
 | `FOR KEY SHARE` | Prevents deletion and key-changing updates while permitting non-key updates. | A transaction depends on the row's referenced key remaining valid. |
 
-`UPDATE` and `DELETE` acquire appropriate row locks automatically. For an explicit locking read, choose the weakest mode that preserves the invariant: stronger modes create more contention without adding useful correctness.
+`UPDATE` and `DELETE` take row locks automatically. For an explicit locking read, choose the weakest mode that protects the rule. Stronger modes can make more transactions wait.
 
 For a join, add `OF <alias>` when only one input should be locked:
 
@@ -121,6 +123,9 @@ CREATE TABLE jobs (
   status text NOT NULL CHECK (status IN ('ready', 'running', 'done'))
 );
 
+INSERT INTO jobs (status)
+VALUES ('ready'), ('ready');
+
 BEGIN;
 
 WITH next_job AS (
@@ -144,7 +149,7 @@ Skipping locked rows gives an intentionally incomplete view, so do not use it fo
 
 ## Understand automatic table locks
 
-Every statement acquires a table-level mode whose only behavior is which other table-level modes it conflicts with. The historical names can mislead: `ROW SHARE` and `ROW EXCLUSIVE` are both table-level locks.
+Statements that access tables acquire table locks. Each mode conflicts with a defined set of other modes. Despite their names, `ROW SHARE` and `ROW EXCLUSIVE` are table-level locks.
 
 The most useful modes to recognize are:
 
@@ -156,9 +161,9 @@ The most useful modes to recognize are:
 | `CREATE INDEX` without `CONCURRENTLY` | `SHARE` | Allows reads but blocks data-changing statements. |
 | `TRUNCATE`, `DROP TABLE`, `VACUUM FULL`, and many schema changes | `ACCESS EXCLUSIVE` | Conflicts with every mode, including plain reads. |
 
-This explains why an apparently small schema migration can wait behind a long transaction and, once queued, contribute to a chain of blocked sessions. Check the documented lock level for the exact command variant before running a migration on an active table.
+Even a small schema change can wait behind a long transaction and cause other sessions to queue behind it. Check the documented lock mode for the exact command before running it on a busy table.
 
-Acquire a table lock explicitly only when correctness genuinely spans the table. For example, a maintenance step that requires a stable set of rows can prevent concurrent data changes while still allowing reads:
+Use an explicit table lock when a rule requires it. For example, maintenance can block concurrent data changes while still allowing reads:
 
 ```sql
 BEGIN;
@@ -175,7 +180,7 @@ Always state the mode. Omitting it makes `LOCK TABLE` request `ACCESS EXCLUSIVE`
 
 A **deadlock** occurs when transactions form a cycle: each holds a lock needed by another. PostgreSQL detects the cycle and aborts one transaction, but the application cannot predict which one.
 
-The strongest prevention is consistent acquisition order. A transfer that touches two accounts can lock both rows by stable key before changing either one:
+A consistent locking order helps prevent deadlocks. A transfer can lock both accounts in key order before changing either one:
 
 ```sql
 BEGIN;
@@ -203,13 +208,13 @@ When a query appears stuck, start with `pg_stat_activity` and PostgreSQL's block
 SELECT
   pid,
   pg_blocking_pids(pid) AS blocked_by,
-  now() - query_start AS waiting_for,
+  now() - query_start AS query_age,
   query
 FROM pg_stat_activity
 WHERE wait_event_type = 'Lock';
 ```
 
-`blocked_by` lists the process IDs ahead of each waiting session. Investigate what those sessions are doing and how long their transactions have been open before deciding whether any should be cancelled.
+`blocked_by` lists the process IDs ahead of each waiting session. `query_age` measures time since the query started, not just its lock wait. Check what the blocking sessions are doing before cancelling one.
 
 For deeper inspection, `pg_locks` shows requested modes and whether they have been granted:
 
@@ -225,23 +230,12 @@ FROM pg_locks
 WHERE NOT granted
   AND (
     database IS NULL
+    OR database = 0
     OR database = (SELECT oid FROM pg_database WHERE datname = current_database())
   );
 ```
 
 A row-level wait often appears as a wait on the transaction ID of the session holding the row lock rather than as a tuple entry. Use `pg_blocking_pids()` instead of trying to infer blocker relationships from a self-join of `pg_locks`.
-
-## Apply the decision rules
-
-- Prefer constraints or one atomic data-changing statement when they can express the rule.
-- Use a row lock when later work must rely on selected rows remaining safe to change.
-- Use the weakest lock mode that preserves correctness and lock only the rows you need.
-- Use `NOWAIT` for fail-fast behavior and reserve `SKIP LOCKED` for queue-like workloads.
-- Use explicit table locks sparingly, always name the mode, and check schema-change lock levels before deployment.
-- Acquire multiple locks in a consistent order, keep transactions short, and retry the whole transaction after a deadlock.
-- Diagnose waits with `pg_stat_activity`, `pg_blocking_pids()`, and `pg_locks`.
-
-The next lesson covers advisory locks, which coordinate application-defined resources that do not map naturally to rows or tables.
 
 ## Official resources
 

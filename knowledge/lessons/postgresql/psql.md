@@ -1,7 +1,7 @@
 ---
 slug: postgresql/psql
 title: Using PostgreSQL from the Terminal
-description: Connect to PostgreSQL with psql, run SQL, inspect database objects, use built-in help, and execute commands from the macOS terminal.
+description: Connect with psql, run SQL, inspect tables, and use built-in help from the macOS terminal.
 tags:
   - postgresql
   - sql
@@ -9,7 +9,9 @@ tags:
   - terminal
 ---
 
-`psql` is PostgreSQL's terminal client. It opens a database connection, sends SQL to the server, displays results, and provides its own commands for inspecting objects and controlling the session. The course setup has already installed the client, started the local server, and created the `postgresql_course` database on macOS.
+`psql` is PostgreSQL's terminal client. It sends SQL statements to the server and displays the results. **SQL** is the language used to query and change database data. `psql` also has its own commands for inspecting objects and controlling the session.
+
+Complete the macOS setup in the course overview before starting. It installs the client, starts the local server, and creates the `postgresql_course` database.
 
 ## Connect from the shell
 
@@ -19,7 +21,9 @@ Open Terminal and connect to the course database:
 psql -d postgresql_course
 ```
 
-For a local connection, `psql` can use a Unix-domain socket and your macOS user name as the database role. The `-d` option selects the database. When connecting to a server whose defaults differ, provide the connection values explicitly:
+For a local connection, `psql` can use a Unix-domain socket, a local communication channel, and your macOS user name as the database role. A **role** is the identity PostgreSQL uses to control access. The `-d` option selects the database.
+
+For a remote server, replace these example values with its connection details:
 
 ```sh
 psql -h db.example.com -p 5432 -U app_user -d app_database
@@ -33,7 +37,7 @@ After a successful connection, the prompt includes the current database:
 postgresql_course=>
 ```
 
-A prompt ending in `=>` represents an ordinary role. One ending in `=#` represents a superuser, whose actions bypass many access controls. Use an ordinary role for routine application work.
+With the default prompt, `=>` indicates an ordinary role and `=#` indicates a superuser. A superuser bypasses most access controls. The local setup normally creates a superuser; use ordinary roles for application connections.
 
 Confirm where the session is connected:
 
@@ -63,8 +67,6 @@ SQL may span several lines. Until the terminating semicolon arrives, the prompt 
 \r
 ```
 
-Do not add a semicolon to `\r` or another meta-command. A meta-command ends at the newline rather than at a SQL terminator.
-
 ## Navigate databases and schemas
 
 List databases available on the server:
@@ -82,14 +84,14 @@ Switch to another database without leaving `psql`, then return to the course dat
 
 Each `\c` creates a new connection. Run `\conninfo` afterward when there is any doubt about the active database or role.
 
-List schemas in the current database and tables visible through the current search path:
+Schemas group named objects inside a database. List its schemas and the tables visible through the session's schema search path:
 
 ```text
 \dn
 \dt
 ```
 
-An empty course database may report that it did not find any relations. Create one small table so the inspection commands have something to show:
+An empty database may report that it did not find any relations. A **table** stores records as rows with named columns. Create one and insert a row:
 
 ```sql
 CREATE TABLE terminal_notes (
@@ -103,7 +105,9 @@ VALUES ('psql is connected')
 RETURNING id, body, created_at;
 ```
 
-Now list the table and inspect its columns, defaults, indexes, and constraints:
+`id` is generated automatically and identifies each row. `body` must contain a value, and `now()` supplies a timestamp for `created_at`. `RETURNING` displays the inserted row.
+
+Now list the table and inspect its definition:
 
 ```text
 \dt
@@ -134,23 +138,6 @@ Use the built-in help instead of leaving the terminal:
 
 `\?` explains psql meta-commands. `\h` lists SQL commands for which syntax help is available, while `\h CREATE TABLE` shows help for one SQL command.
 
-These commands cover the common interactive workflow:
-
-| Command | Purpose |
-| --- | --- |
-| `\conninfo` | Show the active connection. |
-| `\l` | List databases. |
-| `\c database_name` | Connect to another database. |
-| `\dn` | List schemas. |
-| `\dt` | List visible tables. |
-| `\d object_name` | Describe a table, view, sequence, index, or other relation. |
-| `\du` | List database roles. |
-| `\x auto` | Use expanded output when it fits the result better. |
-| `\timing on` | Display SQL execution time. |
-| `\?` | Show help for psql commands. |
-| `\h SQL_COMMAND` | Show SQL syntax help. |
-| `\q` | Exit psql. |
-
 ## Run one command or a SQL file
 
 For a quick terminal check, use `-c`. `psql` executes the complete SQL string and exits:
@@ -159,19 +146,22 @@ For a quick terminal check, use `-c`. `psql` executes the complete SQL string an
 psql -d postgresql_course -c 'SELECT current_database(), current_user;'
 ```
 
-Use `-f` to execute a SQL file and receive errors with file line numbers:
+To run a file, save SQL statements in `lesson.sql` in your current shell directory. Use `-f` to execute it and report errors with line numbers:
 
 ```sh
 psql -d postgresql_course --set=ON_ERROR_STOP=on -f lesson.sql
 ```
 
-`ON_ERROR_STOP` makes `psql` stop processing the file after an error instead of continuing with later commands. From an existing interactive session, the equivalent way to read a file is:
+`ON_ERROR_STOP` stops file processing after an error. From an interactive session, enable the same behavior before reading the file:
 
 ```text
+\set ON_ERROR_STOP on
 \i lesson.sql
 ```
 
-## End the session deliberately
+This setting does not undo statements that have already succeeded. Transactions, covered later, let you group changes that must succeed or fail together.
+
+## End the session
 
 Exit the client with:
 

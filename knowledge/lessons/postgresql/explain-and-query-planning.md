@@ -1,20 +1,20 @@
 ---
 slug: postgresql/explain-and-query-planning
 title: EXPLAIN and Query Planning
-description: Read PostgreSQL query plans, compare estimates with execution data, and identify the first useful performance question.
+description: Read PostgreSQL query plans, compare estimates with measurements, and identify expensive work.
 tags:
   - postgresql
   - databases
   - query-performance
 ---
 
-PostgreSQL does not execute a SQL query exactly as it is written. Its **planner** evaluates possible ways to perform the work and selects a **query plan**: a tree of operations such as scanning rows, filtering them, joining inputs, sorting, and aggregating.
+The **planner** chooses how PostgreSQL executes a query. It estimates the cost of possible approaches, using statistics about the data. Its chosen **query plan** is a tree of operations such as scanning, filtering, joining, grouping, and sorting rows.
 
-The planner chooses between valid plans by estimating how many rows each operation will emit and how expensive the resulting work will be. Those estimates come largely from table statistics. `EXPLAIN` makes the chosen plan visible, while `EXPLAIN ANALYZE` runs the statement and adds measurements from that execution.
+`EXPLAIN` displays the plan. `EXPLAIN ANALYZE` also executes the statement and reports measurements.
 
 ## Create a predictable example
 
-The following temporary table keeps this lesson separate from application data. `generate_series` creates 100,000 rows, and `ANALYZE` collects the statistics the planner needs for useful estimates:
+A **temporary table** is visible only to the current session and is removed when that session ends. Here, `generate_series` creates 100,000 rows. `ANALYZE` collects statistics for the planner:
 
 ```sql
 CREATE TEMP TABLE plan_orders AS
@@ -28,18 +28,7 @@ FROM generate_series(1, 100000) AS n;
 ANALYZE plan_orders;
 ```
 
-Consider a query that finds customers with the most pending orders:
-
-```sql
-SELECT customer_id, count(*) AS order_count
-FROM plan_orders
-WHERE status = 'pending'
-GROUP BY customer_id
-ORDER BY order_count DESC
-LIMIT 5;
-```
-
-Before running it, ask PostgreSQL for its estimate-only plan:
+Inspect a query that groups pending orders by customer and returns five groups with the highest counts:
 
 ```sql
 EXPLAIN
@@ -51,11 +40,11 @@ ORDER BY order_count DESC
 LIMIT 5;
 ```
 
-Plain `EXPLAIN` plans the statement but does not execute it. This makes it a safe first inspection when running the statement itself would be slow or would modify data.
+Plain `EXPLAIN` plans this statement without executing it. Start here when execution could be slow or change data.
 
 ## Read the plan tree
 
-Each line is a **plan node**. Indentation shows parent-child relationships: a parent consumes rows emitted by its children. Start at the deepest indented node, then move upward to reconstruct the flow of data.
+Each operation is a **plan node**, with details below it. Indentation shows its place in the tree: a parent uses rows produced by its children. Read from the deepest nodes upward to follow the data.
 
 For this query, identify these kinds of work in your own output:
 
@@ -64,7 +53,7 @@ For this query, identify these kinds of work in your own output:
 - A sort orders the groups by their count.
 - A limit stops after five output rows.
 
-The exact node names and numbers can vary with the PostgreSQL release, statistics, configuration, and data. Focus first on what work each node performs rather than memorizing one plan shape.
+Node names and numbers vary with the PostgreSQL release, statistics, configuration, and data. Identify each node's work before studying its numbers.
 
 A typical estimate section has this form:
 
@@ -93,13 +82,13 @@ ORDER BY order_count DESC
 LIMIT 5;
 ```
 
-`ANALYZE` adds `actual time`, `rows`, and `loops` to each node. Actual time is measured in milliseconds, and actual rows report rows emitted per execution. When `loops` is greater than one, the displayed time and row count are averages for one loop; multiply them by `loops` when you need totals for that node.
+Here, the `ANALYZE` option runs the query; the standalone `ANALYZE table_name` command collects statistics. The plan now includes `actual time` in milliseconds, output `rows`, and `loops`, the number of executions. For repeated nodes, time and rows are per-loop averages. Multiply by `loops` to estimate that node's total work.
 
-Compare estimated `rows` with actual `rows` at each node. A large difference near the bottom of the tree can lead the planner to make poor choices higher up because later cost estimates build on earlier row estimates. If a filter removes many rows, `Rows Removed by Filter` reveals work that produced no output.
+Compare estimated and actual `rows`. A large mismatch near the bottom can lead to poor choices above it because later estimates depend on earlier ones. `Rows Removed by Filter` counts rows examined but discarded.
 
 `BUFFERS` shows how PostgreSQL accessed table and index blocks. A `hit` means a requested block was already in PostgreSQL's buffer cache. A `read` means PostgreSQL had to request the block from storage; the operating system might still have cached it. Buffer counts often explain why two executions with similar plan shapes take different amounts of time.
 
-Do not add the times for all nodes: parent measurements include time spent in their children. Use the top-level `Execution Time` for the whole statement and node measurements to locate where the execution spent work.
+Do not add node times: parent measurements include their children. `Execution Time` reports server execution time, excluding planning and sending results to the client. Use node measurements to find expensive work; an application's total response time includes more than query execution.
 
 ## Use a focused diagnosis loop
 
@@ -116,7 +105,7 @@ A sequential scan is not automatically a problem. Reading most of a small table 
 
 ## Treat `EXPLAIN ANALYZE` as execution
 
-`EXPLAIN ANALYZE` really runs its statement. A write therefore changes data, fires triggers, acquires locks, and can wait behind other transactions. For a transactional write, the transaction pattern from the first lesson can prevent ordinary table changes from being committed:
+`EXPLAIN ANALYZE` executes writes too. They change data, run triggers (automatic actions attached to a table), acquire locks, and may wait for other transactions. Use the transaction pattern from the transactions lesson to roll back ordinary table changes:
 
 ```sql
 BEGIN;
@@ -130,19 +119,6 @@ ROLLBACK;
 ```
 
 Use this only when executing the write itself is safe. A rollback does not undo every possible effect, such as values consumed from sequences or actions an external system performs in response to a trigger. Prefer a representative non-production environment for risky or expensive statements.
-
-## A practical reading checklist
-
-For each plan, answer these questions before proposing an optimization:
-
-- Which leaf nodes obtain the rows?
-- Where are rows filtered, joined, grouped, sorted, or limited?
-- How closely do estimated and actual row counts agree?
-- Is costly work repeated through a high `loops` count?
-- Do buffer reads or a large volume of discarded rows explain the work?
-- Does the query return the intended result after any change?
-
-`EXPLAIN` is evidence about one statement under particular data, statistics, parameters, and cache conditions. It is a starting point for a testable explanation, not a verdict based on one node name.
 
 ## Official resources
 

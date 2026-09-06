@@ -1,7 +1,7 @@
 ---
 slug: postgresql/foreign-keys
 title: Foreign Keys
-description: Enforce relationships between PostgreSQL tables, choose safe referential actions, and evolve constraints without admitting inconsistent data.
+description: Enforce table relationships, choose delete and update actions, and add foreign keys to existing data.
 tags:
   - postgresql
   - databases
@@ -9,13 +9,13 @@ tags:
   - foreign-keys
 ---
 
-An application can check that a customer exists before it creates an order, but another transaction could delete that customer between the check and the insert. Other clients might skip the check entirely. A `foreign key` puts the rule in PostgreSQL, where it applies to every writer and remains correct under concurrent changes.
+A **foreign key** requires a non-null value in one table to match a key in another. The table holding the reference is the **referencing table**; the target is the **referenced table**. Foreign keys can also refer to the same table.
 
-A foreign key requires each non-null value in the **referencing table** to match a key in the **referenced table**. The database rejects inserts, updates, or deletions that would leave a dangling reference.
+For example, an order must refer to an existing customer. An application check alone is not enough: another transaction could delete the customer between the check and the insert. A foreign key makes PostgreSQL enforce the relationship during concurrent changes.
 
 ## Define a relationship
 
-Create the referenced table first. Its target columns must be backed by a primary key, a unique constraint, or a suitable non-partial unique index:
+Create the referenced table first. Its target columns need a primary key or unique constraint whose check cannot be postponed (`NOT DEFERRABLE`), or a suitable unique index that covers every row:
 
 ```sql
 CREATE TABLE customers (
@@ -66,13 +66,13 @@ The foreign key does not make the relationship mandatory by itself. A null refer
 | `SET NULL` | Clears the reference. | The relationship is optional and the referencing column permits null. |
 | `SET DEFAULT` | Replaces the reference with its column default. | The default identifies a valid referenced row, or is null. |
 
-Use cascades to express ownership, not merely convenience. Deleting an order can reasonably delete its line items, while deleting a customer probably should not erase financial orders. A cascade can affect many rows, so its business meaning should be deliberate.
+Use `CASCADE` when dependent rows belong to the referenced row. Deleting an order can reasonably delete its line items; deleting a customer should usually preserve order history. Check the business rule because a cascade can delete many rows.
 
-`ON UPDATE` accepts the same actions and controls changes to the referenced key. Stable surrogate keys rarely need to change; when a referenced natural key can change, `ON UPDATE CASCADE` can propagate the new value.
+`ON UPDATE` accepts the same actions for changes to the referenced key. Generated identifiers rarely change. If a key is a business value that can change, `ON UPDATE CASCADE` copies the new value to referencing rows.
 
 ## Model multi-column relationships
 
-A relationship may be identified by a combination of columns. In a multi-tenant schema, include the tenant in both sides so a row cannot accidentally reference another tenant's data:
+A **composite foreign key** uses several columns together. If tenants share tables, include the tenant identifier on both sides to prevent references to another tenant's data:
 
 ```sql
 CREATE TABLE projects (
@@ -94,7 +94,7 @@ CREATE TABLE tasks (
 );
 ```
 
-The column count, order, and types on both sides must correspond. With the default `MATCH SIMPLE`, any null in a composite referencing key exempts that row from matching. Declare every component `NOT NULL` when partial references are invalid. If the entire relationship may be absent but a half-filled key must fail, use `MATCH FULL`; then either every component is null or the complete key must match.
+Both sides need the same number of columns in corresponding order, with compatible types. By default, `MATCH SIMPLE` lets a row skip the check if any referencing column is null. Use `NOT NULL` on every component when the relationship is required. For an optional relationship, `MATCH FULL` requires either all components to be null or the complete key to match.
 
 ## Defer a check within a transaction
 
@@ -125,11 +125,11 @@ VALUES (2, 'Grace', NULL);
 COMMIT;
 ```
 
-At commit, manager `2` exists and the final state is valid. Without deferral, the first insert would fail. Keep immediate checking as the default unless a transaction genuinely needs temporary inconsistency: earlier errors are easier to diagnose, and a deferred violation makes the whole commit fail. `SET CONSTRAINTS ... IMMEDIATE` can force an early check before more work is done.
+At commit, manager `2` exists, so the relationship is valid. Without deferral, the first insert fails. Prefer immediate checks unless temporary inconsistency is necessary: a deferred violation fails the whole commit. Use `SET CONSTRAINTS ... IMMEDIATE` to check sooner.
 
 ## Support the relationship with an index
 
-The referenced key already has an index because PostgreSQL requires it to be unique. PostgreSQL does **not** automatically index the referencing columns. That omission can make deleting or updating a referenced row expensive because PostgreSQL must find matching rows in the referencing table. It can also slow common joins and filters.
+An **index** helps PostgreSQL find rows without scanning a whole table. The referenced key already has one to enforce uniqueness. PostgreSQL does **not** automatically index referencing columns, so finding dependent rows during a delete or key update can be expensive. An index can also help queries that join or filter on those columns.
 
 For the first example, this is usually a useful supporting index:
 
@@ -137,13 +137,13 @@ For the first example, this is usually a useful supporting index:
 CREATE INDEX orders_customer_id_idx ON orders (customer_id);
 ```
 
-An index is not part of the foreign key's correctness guarantee, and every index adds write and storage cost. Treat the relationship and its index as separate design decisions; the later indexing lesson shows how to validate the performance choice.
+The foreign key remains correct without this index. Add it when faster lookups justify its storage and write cost. The indexing lesson explains how to measure that tradeoff.
 
 ## Add a foreign key to existing data
 
-This is an alternative to declaring `orders_customer_fk` inside `CREATE TABLE`, not a continuation of the first example. Assume `customers` and `orders` already exist, `customers.id` is a primary key, and `orders` does not yet have this foreign key. Do not run both constraint definitions against the same schema.
+This migration example assumes `customers` and `orders` exist, `customers.id` is a primary key, and `orders_customer_fk` has not been defined. Skip it if you already created that constraint above.
 
-A normal `ALTER TABLE ... ADD CONSTRAINT` checks all existing rows immediately. On a large active table, use `NOT VALID` to begin enforcing the rule for new inserts and updates without performing the initial full scan:
+A normal `ALTER TABLE ... ADD CONSTRAINT` checks all existing rows. `NOT VALID` skips that initial scan while enforcing new references. Adding the constraint still takes locks that can block concurrent writes:
 
 ```sql
 ALTER TABLE orders
@@ -160,26 +160,14 @@ Find and repair existing orphaned rows, then validate the constraint separately:
 SELECT o.id, o.customer_id
 FROM orders AS o
 LEFT JOIN customers AS c ON c.id = o.customer_id
-WHERE c.id IS NULL;
+WHERE o.customer_id IS NOT NULL
+  AND c.id IS NULL;
 
 ALTER TABLE orders
     VALIDATE CONSTRAINT orders_customer_fk;
 ```
 
-`NOT VALID` is a migration state, not permission to keep bad data forever. Validation is what proves the complete table satisfies the relationship.
-
-## Review the design
-
-For each foreign key, answer these questions before shipping it:
-
-- Must the relationship exist? If yes, add `NOT NULL` to every referencing column.
-- Does the referenced key express stable identity and enforce uniqueness?
-- Should deleting the referenced row be blocked, cascade to owned components, or preserve the dependent row with a cleared reference?
-- Does a composite key prevent cross-tenant or cross-scope references?
-- Will deletes, updates, joins, or filters need an index on the referencing columns?
-- If the constraint is added to existing data, when will `VALIDATE CONSTRAINT` run?
-
-The essential rule is simple: encode relationships that must always hold as database constraints, then make nullability, referential actions, and migration state explicit.
+The query finds non-null references with no matching customer. Validation proves that existing rows also satisfy the relationship; include it in the migration plan.
 
 ## Official resources
 
