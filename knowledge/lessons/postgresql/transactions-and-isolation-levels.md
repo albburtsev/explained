@@ -171,7 +171,7 @@ WHERE doctor = 'Alice';
 COMMIT;
 ```
 
-Run the `UPDATE` only if the count is greater than one; the SQL comment does not enforce that condition. If two sessions count first and then deactivate different doctors, PostgreSQL rejects one transaction with a serialization failure. Serializable permits concurrent work and aborts transactions when needed to preserve the serial-order guarantee.
+The SQL comment does not enforce that condition; the application must check the count before it runs the `UPDATE`. If two sessions count first and then deactivate different doctors, PostgreSQL rejects one transaction with a serialization failure. Serializable permits concurrent work and aborts transactions when needed to preserve the serial-order guarantee.
 
 Use `SERIALIZABLE` for decisions across several reads and writes when a database constraint cannot express the rule. Choose `REPEATABLE READ` for a stable view that does not need the serial-order guarantee. Use `READ COMMITTED` when the operation remains correct with a new snapshot for each statement.
 

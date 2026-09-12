@@ -136,7 +136,7 @@ ADD CONSTRAINT users_email_unique UNIQUE (email);
 
 Use `CREATE UNIQUE INDEX` when the rule specifically needs an expression or a subset, as in the earlier examples. Recall from the foreign-key lesson that PostgreSQL indexes the referenced primary or unique key, but does not automatically index the referencing columns.
 
-An ordinary non-unique index improves possible access paths but never guarantees that a query will use it. Correctness must not depend on a particular plan.
+An ordinary non-unique index adds a possible access path, but it never guarantees that a query will use it. Correctness must not depend on a particular plan.
 
 ## Account for lifecycle costs
 

@@ -28,7 +28,7 @@ CREATE ROLE catalog_editor;
 
 `CREATE ROLE` defaults to `NOLOGIN`, so the group roles cannot connect. `CREATE USER app_ada` is another spelling of `CREATE ROLE app_ada LOGIN`.
 
-`LOGIN` makes a role eligible to start a session; the server's authentication configuration still determines whether a particular connection is accepted. The examples below use `SET ROLE` to test authorization without changing authentication settings.
+`LOGIN` makes a role eligible to start a session. The server's authentication configuration still decides whether a particular connection is accepted. The examples below use `SET ROLE` to test authorization without changing authentication settings.
 
 Roles belong to a **cluster**, the databases managed by one PostgreSQL server instance. Creating `app_ada` makes it known across those databases but does not give it access to their tables. Object privileges apply to the particular objects named in a grant.
 
@@ -122,7 +122,7 @@ TO catalog_editor;
 GRANT catalog_editor TO app_ada;
 ```
 
-Prefer explicit privilege names over `ALL PRIVILEGES` when the role should perform a known set of operations. If inserts use an independently managed sequence, such as one created for a `serial` column, the role also needs the relevant sequence privilege; a table grant does not automatically grant access to its sequences.
+Prefer explicit privilege names over `ALL PRIVILEGES` when the role should perform a known set of operations. A table grant does not cover the table's sequences. If inserts use an independently managed sequence, such as one created for a `serial` column, grant the matching sequence privilege as well.
 
 Use `psql` to inspect schema and relation access controls:
 

@@ -21,7 +21,7 @@ Open Terminal and connect to the course database:
 psql -d postgresql_course
 ```
 
-For a local connection, `psql` can use a Unix-domain socket, a local communication channel, and your macOS user name as the database role. A **role** is the identity PostgreSQL uses to control access. The `-d` option selects the database.
+For a local connection, `psql` can connect through a Unix-domain socket, a channel that works only inside one machine. It then uses your macOS user name as the database role. A **role** is the identity PostgreSQL uses to control access. The `-d` option selects the database.
 
 For a remote server, replace these example values with its connection details:
 
@@ -91,7 +91,7 @@ Schemas group named objects inside a database. List its schemas and the tables v
 \dt
 ```
 
-An empty database may report that it did not find any relations. A **table** stores records as rows with named columns. Create one and insert a row:
+In an empty database, `\dt` reports that it found no relations. A **table** stores records as rows with named columns. Create one and insert a row:
 
 ```sql
 CREATE TABLE terminal_notes (

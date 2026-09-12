@@ -84,7 +84,7 @@ LIMIT 5;
 
 Here, the `ANALYZE` option runs the query; the standalone `ANALYZE table_name` command collects statistics. The plan now includes `actual time` in milliseconds, output `rows`, and `loops`, the number of executions. For repeated nodes, time and rows are per-loop averages. Multiply by `loops` to estimate that node's total work.
 
-Compare estimated and actual `rows`. A large mismatch near the bottom can lead to poor choices above it because later estimates depend on earlier ones. `Rows Removed by Filter` counts rows examined but discarded.
+Compare estimated and actual `rows`. A large mismatch in a deep node can lead to poor choices above it, because every estimate higher in the tree depends on it. `Rows Removed by Filter` counts rows examined but discarded.
 
 `BUFFERS` shows how PostgreSQL accessed table and index blocks. A `hit` means a requested block was already in PostgreSQL's buffer cache. A `read` means PostgreSQL had to request the block from storage; the operating system might still have cached it. Buffer counts often explain why two executions with similar plan shapes take different amounts of time.
 

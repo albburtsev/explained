@@ -15,22 +15,22 @@ For example, an order must refer to an existing customer. An application check a
 
 ## Define a relationship
 
-Create the referenced table first. Its target columns need a primary key or unique constraint whose check cannot be postponed (`NOT DEFERRABLE`), or a suitable unique index that covers every row:
+Create the referenced table first. Its target columns need a `NOT DEFERRABLE` primary key or unique constraint, or a unique index that covers every row:
 
 ```sql
 CREATE TABLE customers (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email text NOT NULL UNIQUE
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email text NOT NULL UNIQUE
 );
 
 CREATE TABLE orders (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_id bigint NOT NULL,
-    total numeric(12, 2) NOT NULL CHECK (total >= 0),
-    CONSTRAINT orders_customer_fk
-        FOREIGN KEY (customer_id)
-        REFERENCES customers (id)
-        ON DELETE RESTRICT
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  customer_id bigint NOT NULL,
+  total numeric(12, 2) NOT NULL CHECK (total >= 0),
+  CONSTRAINT orders_customer_fk
+    FOREIGN KEY (customer_id)
+    REFERENCES customers (id)
+    ON DELETE RESTRICT
 );
 ```
 
@@ -76,21 +76,21 @@ A **composite foreign key** uses several columns together. If tenants share tabl
 
 ```sql
 CREATE TABLE projects (
-    tenant_id bigint NOT NULL,
-    project_code text NOT NULL,
-    name text NOT NULL,
-    PRIMARY KEY (tenant_id, project_code)
+  tenant_id bigint NOT NULL,
+  project_code text NOT NULL,
+  name text NOT NULL,
+  PRIMARY KEY (tenant_id, project_code)
 );
 
 CREATE TABLE tasks (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    tenant_id bigint NOT NULL,
-    project_code text NOT NULL,
-    title text NOT NULL,
-    CONSTRAINT tasks_project_fk
-        FOREIGN KEY (tenant_id, project_code)
-        REFERENCES projects (tenant_id, project_code)
-        ON DELETE CASCADE
+  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  tenant_id bigint NOT NULL,
+  project_code text NOT NULL,
+  title text NOT NULL,
+  CONSTRAINT tasks_project_fk
+    FOREIGN KEY (tenant_id, project_code)
+    REFERENCES projects (tenant_id, project_code)
+    ON DELETE CASCADE
 );
 ```
 
@@ -104,13 +104,13 @@ For example, a self-referencing employee hierarchy may need two separate inserts
 
 ```sql
 CREATE TABLE employees (
-    id bigint PRIMARY KEY,
-    name text NOT NULL,
-    manager_id bigint,
-    CONSTRAINT employees_manager_fk
-        FOREIGN KEY (manager_id)
-        REFERENCES employees (id)
-        DEFERRABLE INITIALLY IMMEDIATE
+  id bigint PRIMARY KEY,
+  name text NOT NULL,
+  manager_id bigint,
+  CONSTRAINT employees_manager_fk
+    FOREIGN KEY (manager_id)
+    REFERENCES employees (id)
+    DEFERRABLE INITIALLY IMMEDIATE
 );
 
 BEGIN;
@@ -147,11 +147,11 @@ A normal `ALTER TABLE ... ADD CONSTRAINT` checks all existing rows. `NOT VALID` 
 
 ```sql
 ALTER TABLE orders
-    ADD CONSTRAINT orders_customer_fk
-    FOREIGN KEY (customer_id)
-    REFERENCES customers (id)
-    ON DELETE RESTRICT
-    NOT VALID;
+  ADD CONSTRAINT orders_customer_fk
+  FOREIGN KEY (customer_id)
+  REFERENCES customers (id)
+  ON DELETE RESTRICT
+  NOT VALID;
 ```
 
 Find and repair existing orphaned rows, then validate the constraint separately:
@@ -164,7 +164,7 @@ WHERE o.customer_id IS NOT NULL
   AND c.id IS NULL;
 
 ALTER TABLE orders
-    VALIDATE CONSTRAINT orders_customer_fk;
+  VALIDATE CONSTRAINT orders_customer_fk;
 ```
 
 The query finds non-null references with no matching customer. Validation proves that existing rows also satisfy the relationship; include it in the migration plan.

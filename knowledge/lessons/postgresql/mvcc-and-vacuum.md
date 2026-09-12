@@ -34,7 +34,7 @@ The exact values will differ on every database:
 
 - `ctid` identifies the row version's current physical location. It is useful for observation, not as a durable application identifier.
 - `xmin` records the transaction ID that created this version.
-- `xmax` participates in recording when a version was deleted or replaced, and can also contain row-lock information. Its raw value is not a simple visible/deleted flag.
+- `xmax` records the transaction ID that deleted or replaced this version. It can also hold row-lock information, so its raw value is not a simple deleted flag.
 
 Now update the logical row and inspect it again:
 
@@ -83,7 +83,7 @@ WHERE owner = 'Alice';
 COMMIT;
 ```
 
-A new statement after that commit sees `600.00`. PostgreSQL kept the earlier version for session A and the new version for later readers. Once no snapshot or replication requirement needs an obsolete version, vacuum can remove it as a **dead row version**.
+A new statement after that commit sees `600.00`. PostgreSQL kept the earlier version for session A and the new version for later readers. When no snapshot or replica still needs an obsolete version, it becomes a **dead row version** that vacuum can remove.
 
 ## Understand what vacuum maintains
 
@@ -122,13 +122,13 @@ FROM pg_stat_user_tables
 ORDER BY n_dead_tup DESC;
 ```
 
-`n_live_tup` and `n_dead_tup` are estimates. Compare their trends with vacuum timestamps and the table's update rate. A growing dead-row estimate with no recent autovacuum calls for investigation.
+`n_live_tup` and `n_dead_tup` are estimates. Compare their trends with vacuum timestamps and the table's update rate. Investigate when the dead-row estimate grows and no recent autovacuum appears.
 
 A manual vacuum can help after a large update or delete, or when autovacuum falls behind. For fresh planner statistics alone, use `ANALYZE`.
 
 ## Avoid delaying cleanup
 
-Vacuum cannot remove a version that a transaction or replica still needs. Long-running transactions can therefore delay cleanup even when vacuum succeeds. So can prepared transactions waiting for an external coordinator, or replication slots that record what data a replica still needs.
+Vacuum cannot remove a version that a transaction or replica still needs. Long-running transactions can therefore delay cleanup even when vacuum succeeds. Prepared transactions waiting for an external coordinator can delay it too, and so can replication slots that record what data a replica still needs.
 
 Find transactions that have remained open for a long time:
 

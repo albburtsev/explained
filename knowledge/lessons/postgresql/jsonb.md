@@ -192,7 +192,7 @@ FROM products
 WHERE (attributes #>> '{dimensions,weight_kg}')::numeric < 2;
 ```
 
-PostgreSQL evaluates the cast when building and maintaining this index, so invalid numeric values cause errors then too. If a field needs reliable typing, range searches, constraints, or joins, a typed column is usually clearer.
+PostgreSQL evaluates the cast when it builds and maintains this index, so a row whose value is not a valid number causes an error on insert or update. If a field needs reliable typing, range searches, constraints, or joins, a typed column is usually clearer.
 
 As with any small example, PostgreSQL may prefer a sequential scan because reading the whole table is cheaper. Use `EXPLAIN` with representative data before deciding whether an index helps the production workload.
 

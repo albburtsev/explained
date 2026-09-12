@@ -52,7 +52,7 @@ COMMIT;
 
 While session A holds the lock, an ordinary `SELECT` in session B can read the last committed row version. A competing `UPDATE`, `DELETE`, or `SELECT ... FOR UPDATE` for product `101` waits.
 
-At `READ COMMITTED`, a waiting locking read uses the updated row after session A finishes, if it still matches `WHERE`. A deleted row is not returned. At `REPEATABLE READ` or `SERIALIZABLE`, a row changed since the snapshot can instead cause a serialization failure.
+At `READ COMMITTED`, a locking read that waited rechecks the row after session A finishes and returns the updated version if it still matches `WHERE`. A deleted row is not returned. At `REPEATABLE READ` or `SERIALIZABLE`, a row changed since the snapshot can instead cause a serialization failure.
 
 The `WHERE` clause defines the lock scope. Select only rows the transaction actually needs, and support the lookup with an appropriate index so PostgreSQL can find them efficiently. A row lock may also cause a disk write because PostgreSQL marks the row as locked.
 
@@ -196,7 +196,7 @@ FOR UPDATE;
 COMMIT;
 ```
 
-Every code path that locks these accounts should use the same ordering. Also acquire the strongest mode the transaction will need on an object the first time it locks that object, and keep transactions short. Never hold a transaction open while waiting for user input.
+Every code path that locks these accounts should use the same ordering. When a transaction will need a strong mode on an object, take that mode the first time it locks the object instead of upgrading later. Keep transactions short. Never hold a transaction open while waiting for user input.
 
 Deadlocks can still happen. Treat a deadlock error as a failed transaction: roll back and retry the whole operation from the beginning, just as with the retryable transaction failures introduced in the isolation lesson.
 

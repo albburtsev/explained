@@ -9,7 +9,7 @@ tags:
   - locking
 ---
 
-An **advisory lock** protects a numeric key chosen by an application. The key might represent a report rebuild or work for one tenant. PostgreSQL manages conflicting requests but does not know what the key means or automatically lock any rows.
+An **advisory lock** protects a numeric key chosen by an application. The key might represent a report rebuild or work for one tenant. PostgreSQL manages conflicting requests for that key. It does not know what the key means, and it does not lock any rows.
 
 Every caller must use the same key and acquire the lock before doing the protected work. Prefer a constraint, atomic statement, or row lock when it can express the rule directly. Advisory locks help when an operation has no suitable row or table to lock.
 
@@ -37,7 +37,7 @@ Advisory-lock keys are local to a database. Identical keys acquired in different
 
 ## Prefer a transaction-level lock for database work
 
-A **transaction-level advisory lock** is released when its transaction commits or rolls back. `pg_advisory_xact_lock` waits to acquire an exclusive lock. This application example assumes the two document tables and their columns already exist; the practice exercise below needs no tables:
+A **transaction-level advisory lock** is released when its transaction commits or rolls back. `pg_advisory_xact_lock` waits to acquire an exclusive lock. This example assumes the two document tables already exist; the practice exercise at the end needs no tables:
 
 ```sql
 BEGIN;
@@ -60,7 +60,7 @@ If another transaction holds a conflicting lock on `(21, 7001)`, the `SELECT` wa
 
 An `UPDATE` that skips this advisory lock can still change rows for tenant `7001`. Keep database constraints for rules that every writer must obey.
 
-Use an explicit transaction: with autocommit, the lock is released when the locking statement finishes. Acquire it before reading the state needed for the decision. At `READ COMMITTED`, following statements get fresh snapshots after the previous holder finishes. Waiting for a lock does not refresh an existing `REPEATABLE READ` or `SERIALIZABLE` snapshot.
+Use an explicit transaction. With autocommit, the lock is released as soon as the locking statement finishes. Acquire it before reading the state the decision depends on. At `READ COMMITTED`, following statements get fresh snapshots after the previous holder finishes. Waiting for a lock does not refresh an existing `REPEATABLE READ` or `SERIALIZABLE` snapshot.
 
 Keep transactions short and retry the whole transaction after a deadlock or serialization failure, as in the earlier transactions lesson.
 

@@ -130,7 +130,7 @@ The system catalog schema `pg_catalog` is always searched. When it is not listed
 
 An unqualified name depends on session settings. Qualify names in schema migrations, administrative scripts, and code where selecting the wrong object would be dangerous. If an application relies on `search_path`, set and test it explicitly.
 
-A role with `CREATE` permission on a schema can add an object with a name another query expects to find elsewhere. Keep schemas writable by untrusted roles out of a privileged session's path.
+A role with `CREATE` permission on a schema can add an object whose name another query expects to find in a different schema. If that schema comes first in the path, the query silently uses the wrong object. Keep schemas that untrusted roles can write out of a privileged session's path.
 
 ## Move and remove objects deliberately
 
@@ -147,7 +147,7 @@ The table's qualified name is now `course_audit.settings`. Update application re
 
 ```sql
 DROP SCHEMA course_app;
--- ERROR: the schema is not empty
+-- ERROR: cannot drop schema course_app because other objects depend on it
 ```
 
 `DROP SCHEMA course_app CASCADE` removes its objects and can remove dependent objects in other schemas. Inspect both before using it, especially outside a disposable local database.
