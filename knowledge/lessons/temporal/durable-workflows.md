@@ -24,7 +24,7 @@ export async function executiveReportWorkflow(
 }
 ```
 
-Starting that function creates a `Workflow Execution`: one durable instance with its own input, state, and Event History. The function name `executiveReportWorkflow` is the Workflow Type. It can create many executions, just as one class or function can create many runtime instances.
+Starting that function creates a `Workflow Execution`: one durable instance with its own input, state, and Event History. The function name `executiveReportWorkflow` is the Workflow Type. One definition can create many executions, just as one class can create many objects.
 
 Each execution has two useful identifiers:
 
@@ -58,7 +58,7 @@ A Workflow Definition must produce the same sequence of Commands when replayed w
 
 The TypeScript SDK runs Workflow code in a sandbox and provides replay-safe behavior for several familiar APIs:
 
-- `Date.now()` and `new Date()` return deterministic Workflow time, based on the current Workflow Task. Time advances across awaited Temporal operations.
+- `Date.now()` and `new Date()` return deterministic Workflow time: the time of the last completed Workflow Task. Time advances across awaited Temporal operations.
 - `Math.random()` uses a deterministic random source and produces the same sequence during replay.
 - `setTimeout()` and `clearTimeout()` are replaced with deterministic versions, although the SDK recommends `sleep()` because it integrates better with cancellation.
 - `uuid4()` from `@temporalio/workflow` generates deterministic UUIDs. `crypto.randomUUID()` is not available in the sandbox.
@@ -121,7 +121,7 @@ npm run start.watch
 
 The waiting Client should now print the same delivery result as before. Open [Temporal Web UI](http://localhost:8233), select that Workflow ID, and inspect its Event History. You should find the timer start and fire events before the Activity and Workflow completion events.
 
-The restarted Worker did not restore a JavaScript heap snapshot. It replayed the definition against the stored history, reproduced the timer Command, consumed the recorded timer outcome, and continued with the next Command. The replay-aware logger avoids printing `Report accepted` a second time merely because the code ran again during replay.
+The restarted Worker did not restore a JavaScript heap snapshot. It replayed the definition against the stored history, reproduced the timer Command, consumed the recorded timer outcome, and continued with the next Command. The replay-aware logger avoids printing `Report accepted` a second time just because the code ran again during replay.
 
 If the Client terminal is also closed, the Workflow still continues. The Client requests and observes execution; it does not host the Workflow's state. You can find the execution later through its Workflow ID in the Web UI.
 

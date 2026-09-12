@@ -44,7 +44,7 @@ const idempotencyKey = `executive-report:${reportDate}`;
 return await deliverReport(report, recipients, idempotencyKey);
 ```
 
-The two-argument form of `condition` returns `true` when the predicate becomes true before the durable timer expires and `false` on timeout. The timer belongs to Workflow state, so it survives Worker restarts. A late approval cannot revive this execution after it has returned; an application that needs a new attempt should start a new Workflow according to its business identity rules.
+The two-argument form of `condition` returns `true` when the predicate becomes true before the durable timer expires and `false` on timeout. The timer belongs to Workflow state, so it survives Worker restarts. A late approval cannot revive this execution after it has returned; an application that needs another attempt must start a new Workflow.
 
 ## Build a Workflow test harness
 
@@ -199,7 +199,7 @@ The fake Activities preserve the production function signatures through `typeof 
 
 ## Exercise messages and time
 
-The approval-path test starts an execution instead of merely awaiting `workflow.execute`. That gives the test a typed handle while the Workflow is open, allowing it to:
+The approval-path test starts an execution instead of just awaiting `workflow.execute`. That gives the test a typed handle while the Workflow is open, allowing it to:
 
 1. Query the initial state.
 2. Execute the recipient Update and assert its result.
@@ -208,7 +208,7 @@ The approval-path test starts an execution instead of merely awaiting `workflow.
 
 The timeout-path test deliberately sends no approval. Awaiting `env.client.workflow.execute` enables automatic time skipping: when no Activity is running, the test service advances through the initial 20-second timer and the 24-hour condition timeout without waiting for wall-clock time. The final assertion also proves that the delivery Activity was never scheduled.
 
-Time is global within one `TestWorkflowEnvironment`. Mocha runs these tests serially by default; if a suite enables parallel execution, give tests that manually control time separate environments or keep that group serial.
+Time is global within one `TestWorkflowEnvironment`. Mocha runs these tests serially by default. If a suite enables parallel execution, keep time-controlling tests serial or give each one its own environment.
 
 Run the suite from the project directory:
 
@@ -226,7 +226,7 @@ Use three complementary test shapes:
 - **Activity unit tests** should call ordinary Activity logic directly. When an Activity reads `activityInfo`, heartbeats, or cancellation state, run it with `MockActivityEnvironment`; mock the external API or database separately.
 - **Real-Service integration checks** should run a small happy path against the local development Service with the real Worker and Activities. They catch connection, registration, Task Queue, and serialization mistakes, but are slower and should not replace focused tests.
 
-This separation keeps durable orchestration tests fast while still testing external operations and application wiring at the boundaries where those concerns belong.
+This separation keeps orchestration tests fast and still covers external operations and application wiring where those concerns belong.
 
 ## Official resources
 

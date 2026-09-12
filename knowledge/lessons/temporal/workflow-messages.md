@@ -12,7 +12,7 @@ The executive-report Workflow can survive failures, but it still runs from start
 
 Temporal provides three message types for these different contracts:
 
-| Message | May read state | May change state | Returns a Workflow result | Recorded in Event History |
+| Message | May read state | May change state | Returns a value to the caller | Recorded in Event History |
 | --- | --- | --- | --- | --- |
 | Query | Yes | No | Yes | No |
 | Signal | Yes | Yes | No | Yes |
@@ -209,7 +209,7 @@ export async function deliverReport(
 
 The Update validator rejects an empty list, simple malformed values, duplicates, and changes after approval. A rejected Update does not mutate Workflow state and is not accepted into Event History. If validation succeeds, the handler replaces the list and returns both the previous and current values.
 
-The `includes('@')` check is intentionally only enough for a local example. Production address validation and authorization belong at the application boundary; the Workflow validator should enforce the deterministic business rules that protect its state.
+The `includes('@')` check is only good enough for a local example. Production address validation and authorization belong at the application boundary; the Workflow validator should enforce the deterministic business rules that protect its state.
 
 ## Send all three messages from a Client
 
@@ -281,7 +281,7 @@ const status = await handle.query(getReportStatus);
 await handle.signal(approveReport, { approvedBy: 'Maya' });
 ```
 
-The handle is a Client-side address and command surface, not the owner of Workflow state. Closing the Client does not stop the execution.
+The handle is a Client-side address for sending commands, not the owner of Workflow state. Closing the Client does not stop the execution.
 
 ## Run the interaction
 

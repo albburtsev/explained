@@ -8,7 +8,7 @@ tags:
   - workers
 ---
 
-The report application now has durable Workflow orchestration and retryable Activities, but neither the Client nor the Temporal Service executes that TypeScript. Your Worker Process supplies the runtime in which the application code actually runs.
+The report application now has durable Workflow orchestration and retryable Activities, but neither the Client nor the Temporal Service executes that TypeScript. Your Worker Process runs it.
 
 This lesson follows one report through its Workflow and Activity tasks, then uses the existing `executive-report` Task Queue to observe what happens with zero, one, and two Worker Processes.
 
@@ -121,7 +121,7 @@ Inspect the logical Task Queue from another terminal:
 temporal task-queue describe --task-queue executive-report
 ```
 
-The command reports Workflow and Activity queue information, including recent pollers and approximate backlog statistics. Poller entries can remain visible briefly after a Worker stops because the Service reports recent polling activity, so use the last-access time together with the running terminals rather than treating the list as an instantaneous process registry.
+The command reports Workflow and Activity queue information, including recent pollers and approximate backlog statistics. Poller entries can stay visible for a short time after a Worker stops, because the Service reports recent polling activity. Read the last-access time together with your running terminals instead of treating the list as a live process registry.
 
 Now start one Worker again:
 

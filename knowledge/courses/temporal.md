@@ -18,9 +18,9 @@ lessons:
   - temporal/schedules
 ---
 
-`Temporal` is a durable execution platform for application logic that must survive process crashes, network failures, and long waits. Instead of scattering retries, saved progress, and recovery code across services, you express the business process as a Workflow and let Temporal preserve its execution state.
+`Temporal` is a durable execution platform for application logic that must survive process crashes, network failures, and long waits. Instead of spreading retry logic, saved progress, and recovery code across your services, you write the business process as a Workflow and let Temporal preserve its state.
 
-This course builds one TypeScript application that prepares and delivers an executive BI report. You will begin with a complete local execution, then make the report pipeline durable, observable, interactive, testable, and scheduled.
+This course builds one TypeScript application that prepares and delivers an executive BI report. You start by running the whole pipeline locally, then make it durable, observable, interactive, testable, and scheduled.
 
 ## Set up Temporal on macOS
 
@@ -48,7 +48,7 @@ npx @temporalio/create@latest temporal-bi-report --sample hello-world
 cd temporal-bi-report
 ```
 
-The generated project includes the Temporal TypeScript SDK packages and a small end-to-end application that you will reshape into the executive-report pipeline.
+The generated project includes the Temporal TypeScript SDK and a small working application that you will reshape into the executive-report pipeline.
 
 ## Official resources
 

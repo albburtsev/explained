@@ -180,7 +180,7 @@ Using both creates a per-attempt limit and an overall retry budget. The heartbea
 
 Activities have a default Retry Policy even when `retry` is omitted: exponential backoff begins at one second, doubles up to a maximum interval of 100 seconds, and has unlimited attempts unless another limit closes the execution. That is a useful default for many transient failures. This lesson sets explicit caps so a broken dependency becomes visible within a predictable practice window.
 
-Choose policies from operation semantics, not from a shared constant. A rate-limited API may need a longer interval; invalid input should usually produce a non-retryable `ApplicationFailure`; a business deadline belongs in the total Schedule-To-Close bound. Do not add a retry loop inside the Activity around Temporal's retry loop unless the inner retries serve a deliberately different purpose.
+Choose each policy from how the operation behaves, not from one shared constant. A rate-limited API may need a longer interval; invalid input should usually produce a non-retryable `ApplicationFailure`; a business deadline belongs in the total Schedule-To-Close limit. Do not add a retry loop inside the Activity around Temporal's retry loop unless the inner retries serve a deliberately different purpose.
 
 ## Observe a retry
 
@@ -224,7 +224,7 @@ Both attempts are valid from Temporal's perspective. The external system must ma
 
 The Workflow derives `executive-report:<reportDate>` once and passes it into delivery. The local Activity only logs that key; an in-memory `Set` would be a misleading substitute because it disappears during the same process failure that causes a retry. In production, the delivery provider or a durable database must enforce uniqueness atomically.
 
-Retries also apply to reads and other operations without visible side effects. Those calls should still be bounded by timeouts and safe to repeat, but delivery is where confusing durable orchestration with exactly-once delivery is most costly.
+Retries also apply to reads and other operations without visible side effects. Those calls should still have timeouts and be safe to repeat, but delivery is where confusing durable orchestration with exactly-once delivery costs the most.
 
 ## Review the Activity contract
 

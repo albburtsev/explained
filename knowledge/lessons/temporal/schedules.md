@@ -38,7 +38,7 @@ export async function executiveReportWorkflow(
 
 Keep every later use of `reportDate` unchanged. Existing direct starts and tests still pass a string and therefore keep their exact behavior. The Schedule will pass no argument, so each new execution derives its own date.
 
-Inside TypeScript Workflow code, `new Date()` and `Date.now()` use deterministic Workflow time. Temporal supplies the same value during replay, so deriving the fallback inside the Workflow does not introduce nondeterminism. The ISO expression deliberately produces a `YYYY-MM-DD` date in UTC. The Schedule below fires at 09:00 in London, when the London and UTC calendar dates are the same.
+Inside TypeScript Workflow code, `new Date()` and `Date.now()` use deterministic Workflow time. Temporal supplies the same value during replay, so deriving the fallback inside the Workflow does not introduce nondeterminism. The ISO expression deliberately produces a `YYYY-MM-DD` date in UTC. The Schedule below fires at 09:00 in London, an hour at which the London and UTC calendar dates always match.
 
 Do not calculate the fallback in the Schedule creation script. That script runs once, whereas the Workflow function runs once for every Workflow Execution started by the Schedule.
 
@@ -151,7 +151,7 @@ The action describes what to start at each matching time:
 - `args: []` asks each execution to derive its date from deterministic Workflow time.
 - `workflowId` supplies the readable base `executive-report-daily`; Temporal appends the action timestamp to that base, so each start has a distinct Workflow ID, Run ID, and Event History.
 
-`calendars` describes wall-clock matches more clearly than a cron string for this use case. Unspecified calendar fields match their defaults: the hour and minute select 09:00, while day, month, and year remain unrestricted. `timezone` is an IANA time-zone name interpreted by the Temporal Service. Without it, the Schedule uses UTC. Explicit local time zones can be affected by daylight-saving transitions, so avoid ambiguous or nonexistent hours when the business rule permits it.
+`calendars` describes wall-clock matches more clearly than a cron string for this use case. Unspecified calendar fields match their defaults: the hour and minute select 09:00, while day, month, and year remain unrestricted. `timezone` is an IANA time-zone name interpreted by the Temporal Service. Without it, the Schedule uses UTC. Local time zones are affected by daylight-saving transitions, so avoid hours that such a change can duplicate or skip.
 
 ## Prevent overlapping approval waits
 

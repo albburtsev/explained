@@ -8,7 +8,7 @@ tags:
   - workflows
 ---
 
-The project created on the course page already contains a complete Temporal application. Before changing it, run that application once and use it to identify where each Temporal primitive lives.
+The project you created during setup already contains a complete Temporal application. Before changing it, run that application once and use it to identify where each Temporal primitive lives.
 
 From the `temporal-bi-report` directory, inspect the generated files:
 
@@ -71,7 +71,7 @@ The queue does not contain your code. The Service places tasks there, and the Wo
 
 ## Reshape the sample into a report application
 
-Now keep the same architecture but give it the domain used throughout this course. The first version simulates delivery so that the complete execution remains local. Later lessons will split it into real metric-fetching, rendering, and delivery Activities.
+Now keep the same architecture but give it the domain used throughout this course. The first version simulates delivery so that the complete execution remains local. Later lessons split it into separate metric-fetching, rendering, and delivery Activities.
 
 Replace `src/activities.ts` with:
 
@@ -105,7 +105,7 @@ export async function executiveReportWorkflow(
 }
 ```
 
-`proxyActivities` creates a typed Activity proxy. Calling it schedules an Activity through Temporal; it does not import and execute the Activity implementation inside the Workflow runtime. The timeout is required because external work cannot be allowed to run without a bound.
+`proxyActivities` creates a typed Activity proxy. Calling it schedules an Activity through Temporal; it does not import and execute the Activity implementation inside the Workflow runtime. The timeout is required, because external work must not run without a limit.
 
 In `src/worker.ts`, keep the generated connection and registration code, but change the Worker's Task Queue:
 
