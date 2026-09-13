@@ -1,6 +1,6 @@
 ---
 name: add-lesson
-description: Add one new English Markdown lesson to an existing Explained course selected by a required course-slug argument and register it in the course's ordered outline. Use when the human author invokes `$add-lesson COURSE_SLUG` to create, write, insert, or append a lesson under `knowledge/lessons/`; require that argument before starting, gather any other missing author inputs, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
+description: Add one new English Markdown lesson to an existing Explained course selected by a required course-slug argument and register it in the course's ordered outline. Use when the human author invokes `$add-lesson COURSE_SLUG` to create, write, insert, or append a lesson under `knowledge/lessons/`; require that argument before starting, gather any other missing author inputs, enforce the domain rules in `AGENTS.md`, and validate the published content.
 ---
 
 # Add Lesson
@@ -19,12 +19,11 @@ Do not infer the course slug from conversation context, a course title, a direct
 
 ## 1. Load the current rules
 
-1. Locate the repository root and read every applicable `AGENTS.md`.
-2. Read `openspec/specs/course-content/spec.md` completely and freshly. Treat both general lesson rules and course-specific requirements as authoritative.
-3. Inspect `src/content.config.ts`, the target file in `knowledge/courses/`, and every lesson listed by that course. Inspect repository validation commands before editing.
-4. Preserve unrelated and pre-existing changes in the worktree.
+1. Locate the repository root and read every applicable `AGENTS.md` completely and freshly. Treat its domain rules as authoritative.
+2. Inspect `src/content.config.ts`, the target file in `knowledge/courses/`, and every lesson listed by that course. Inspect repository validation commands before editing.
+3. Preserve unrelated and pre-existing changes in the worktree.
 
-Do not edit the specification to make a conflicting lesson permissible. If the requested lesson would violate a fixed count, fixed order, prescribed outline, or another requirement, stop and explain the conflict.
+Do not edit the domain rules to make a conflicting lesson permissible. If the requested lesson would violate a fixed count, fixed order, prescribed outline, or another requirement, stop and explain the conflict.
 
 ## 2. Collect only missing author input
 
@@ -48,9 +47,9 @@ Before writing:
 5. Confirm that `knowledge/lessons/<course-id>/<lesson-id>.md` and its course reference do not already exist.
 6. Compare the topic with every existing lesson to avoid duplication and preserve one topic per file.
 7. Confirm that the lesson can stand alone or depend only on lessons before its requested position. Never make it rely on a later lesson.
-8. Check every applicable course-specific requirement from the OpenSpec file.
+8. Check the requested lesson against every applicable rule in `AGENTS.md` and against the parent course's existing curriculum.
 
-Pause for the author when a collision, ambiguous course, conflicting position, duplicate topic, or specification conflict requires a material choice.
+Pause for the author when a collision, ambiguous course, conflicting position, duplicate topic, or conflict with the domain rules requires a material choice.
 
 ## 4. Research the content
 
@@ -81,7 +80,7 @@ Follow these content rules:
 - Build only on material in earlier lessons. Briefly connect to earlier or next material only when it improves continuity.
 - Follow terminology, formatting, emphasis, command, link, and scope requirements specific to the course.
 - Use valid Markdown, fenced-code language identifiers, accurate examples, and concise headings. Do not repeat the title as an H1 because the page layout renders it from frontmatter.
-- Do not create an installation guide or cheatsheet. Include setup inside the lesson only when it is part of the approved topic and allowed by the specification.
+- Do not create an installation guide or cheatsheet. Include setup inside the lesson only when it is part of the approved topic and allowed by the domain rules.
 
 Generate the description and tags from the finished lesson. Keep tags concise, reusable, lowercase, and consistent with the course.
 
@@ -89,11 +88,11 @@ Generate the description and tags from the finished lesson. Keep tags concise, r
 
 Add `<course-slug>/<lesson-id>`—the new lesson's exact explicit slug—to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order.
 
-Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the specification permits the edit. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
+Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the domain rules permit the edit. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
 
 ## 7. Verify the result
 
-Re-read the new lesson, parent course, earlier lessons, and applicable OpenSpec requirements. Confirm:
+Re-read the new lesson, parent course, earlier lessons, and the applicable domain rules. Confirm:
 
 - The title is the author's exact English outline entry.
 - The explicit slug begins with the parent course slug, matches the course reference, and occupies the requested position.
@@ -101,7 +100,7 @@ Re-read the new lesson, parent course, earlier lessons, and applicable OpenSpec 
 - Frontmatter matches `src/content.config.ts`.
 - The lesson is English-only, atomic, beginner-focused, and realistically completable within 30 minutes.
 - Every dependency points backward in the curriculum.
-- Course-specific requirements and verified facts are satisfied.
+- The domain rules and verified facts are satisfied.
 - No unrelated content, installation guide, prerequisites section, or cheatsheet was added.
 
 Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands. Also run `git diff --check` and inspect the final diff. Do not stage or commit changes unless explicitly requested.

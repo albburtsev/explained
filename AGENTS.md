@@ -42,6 +42,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - State required software dependencies concisely inside the relevant setup guidance, using the shortest accurate version constraint such as `Node.js v20+`; do not add a separate prerequisites section or enumerate versions when one accurate range is enough.
 - Do not provide commands or procedures to install, upgrade, select, or verify the version of a dependency. Commands may still install or verify the course's primary tool and may initialize, configure, or run the learning project, including project generators that manage their own packages.
 - Do not generate a cheatsheet during routine course creation. Generate one only after an explicit request from the human author.
+- Wrap an important domain term in Markdown inline code at the point where it is defined or first explained. Leave later routine mentions unformatted unless they are a literal command, path, filename, or identifier.
 
 ## Cheatsheet model
 
@@ -49,3 +50,16 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - It summarizes the course's useful commands, concepts, or keyboard shortcuts in a space-efficient layout.
 - It is not a lesson and does not count toward the course's lesson total.
 - Its structured source document contains the authoritative frontmatter and `slug`; the generated PDF does not need to duplicate that frontmatter.
+
+## Site interface
+
+- The home page is a content-first catalogue: course entries begin immediately below the site header, without a visible `Explained` or `Courses` heading, introductory copy, promotional calls to action, or decorative artwork. Keep a non-visible semantic heading for assistive technology.
+- Sort every complete catalogue, on the home page and on `/courses`, by `catalogOrder` in descending order. Never let alphabetical title order override it.
+- The Explained logo is the site's only graphic element. Express search, theme selection, metadata, navigation, and state through text, typography, rules, and color. Render catalogue and curriculum entries as typographic list rows separated by subtle rules rather than cards, illustrations, or icon-led tiles.
+- Use a system serif role for content headings, course titles, and long-form prose; a system sans-serif role for controls, navigation, and metadata; and a system monospace role for code. Do not download an external font.
+- Keep spacing compact while preserving comfortable line height and contrast. On lesson pages, the lesson heading, article, and lesson navigation share the site header's outer content width and gutters. Content reflows on narrow viewports without horizontal page scrolling, overlap, clipped controls, or unreadably small prose.
+- Derive colors, typography roles, spacing, content widths, borders, and radii from a small semantic token set, and style every shared state from it, including focus, hover, code, search results, borders, and muted text.
+- Render the dark theme when no preference is saved. Provide a warm, paper-like light theme with equivalent semantic roles and readable contrast, not a cold or pure-white palette.
+- Keep the theme control minimal and keyboard-accessible in the header. It communicates the next available theme, applies the alternate theme immediately, persists an explicit choice for later visits, and falls back safely to the dark default when preference storage is unavailable.
+- Keep shared chrome minimal: the header holds the Explained home link, search, and theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
+- Preserve existing behavior when changing the interface: routes, Markdown-rendered content, course ordering, curriculum links, previous and next lesson navigation, local search, keyboard interaction, and semantic page landmarks.

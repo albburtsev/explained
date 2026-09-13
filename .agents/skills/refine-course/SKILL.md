@@ -19,8 +19,8 @@ Accept either the exact frontmatter `slug` or the exact frontmatter `title`. If 
 
 ## Load the course and its rules
 
-1. Locate the repository root and read every applicable `AGENTS.md`.
-2. Read `openspec/specs/course-content/spec.md`, `src/content.config.ts`, and the repository's validation commands.
+1. Locate the repository root and read every applicable `AGENTS.md` completely and freshly. Treat its domain rules as authoritative.
+2. Read `src/content.config.ts` and the repository's validation commands.
 3. Resolve the argument against course frontmatter. It must match exactly one course by `slug` or `title`; stop when it matches none or is ambiguous.
 4. Read the course file and every lesson referenced by its `lessons` array, in curriculum order. Confirm that each reference resolves exactly once and belongs to the selected course.
 5. Preserve unrelated and pre-existing worktree changes.

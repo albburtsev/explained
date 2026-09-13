@@ -1,6 +1,6 @@
 ---
 name: add-course
-description: Create one new English Explained course from a required author-provided title, goal, and ordered list of initial lesson titles. Use when the human author invokes `$add-course` to create a course under `knowledge/courses/`; require all three inputs, derive the course slug and metadata, delegate every lesson concurrently to a separate sub-agent invoking `$add-lesson COURSE_SLUG`, enforce `AGENTS.md` and `openspec/specs/course-content/spec.md`, and validate the published content.
+description: Create one new English Explained course from a required author-provided title, goal, and ordered list of initial lesson titles. Use when the human author invokes `$add-course` to create a course under `knowledge/courses/`; require all three inputs, derive the course slug and metadata, delegate every lesson concurrently to a separate sub-agent invoking `$add-lesson COURSE_SLUG`, enforce the domain rules in `AGENTS.md`, and validate the published content.
 ---
 
 # Add Course
@@ -32,13 +32,12 @@ Do not infer or silently translate the title or lesson titles. Do not ask the au
 
 ## 1. Load the current rules
 
-1. Locate the repository root and read every applicable `AGENTS.md`.
-2. Read `openspec/specs/course-content/spec.md` completely and freshly. Treat its general and course-specific requirements as authoritative.
-3. Read `.agents/skills/add-lesson/SKILL.md` completely and freshly. Every lesson sub-agent must follow that workflow rather than imitate it.
-4. Inspect `src/content.config.ts`, existing files under `knowledge/courses/` and `knowledge/lessons/`, repository slug validation, and available validation commands.
-5. Preserve unrelated and pre-existing worktree changes.
+1. Locate the repository root and read every applicable `AGENTS.md` completely and freshly. Treat its domain rules as authoritative.
+2. Read `.agents/skills/add-lesson/SKILL.md` completely and freshly. Every lesson sub-agent must follow that workflow rather than imitate it.
+3. Inspect `src/content.config.ts`, existing files under `knowledge/courses/` and `knowledge/lessons/`, repository slug validation, and available validation commands.
+4. Preserve unrelated and pre-existing worktree changes.
 
-Do not edit specifications or authoring rules to make a conflicting course permissible. Stop and explain any conflict with a fixed curriculum, published identity, or other declared requirement.
+Do not edit the domain rules to make a conflicting course permissible. Stop and explain any conflict with a fixed curriculum, published identity, or other declared requirement.
 
 ## 2. Validate the proposed curriculum
 
@@ -113,7 +112,7 @@ After all sub-agents and focused retries finish, reconcile the parent course's `
 
 After every lesson sub-agent succeeds:
 
-1. Re-read the course, every listed lesson, all applicable `AGENTS.md` files, `openspec/specs/course-content/spec.md`, and `src/content.config.ts`.
+1. Re-read the course, every listed lesson, all applicable `AGENTS.md` files, and `src/content.config.ts`.
 2. Confirm the course title and every lesson title exactly match the author's English inputs.
 3. Confirm that the ordered course references match the complete initial outline and that dependencies point only backward.
 4. Confirm every frontmatter slug is recognizable, valid, globally unique, and consistent with its Astro entry ID, route, and parent reference.

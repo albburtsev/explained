@@ -85,6 +85,10 @@ Every course, lesson, and future cheatsheet source declares a human-readable `sl
 
 Astro uses the explicit `slug` as the content entry ID, route, and typed reference key. To add content, create the lesson Markdown file and add its slug to the parent course's `lessons` list. Missing references fail the build. Treat a published slug as stable because changing it changes identity and may require coordinated reference and route updates.
 
+## Interface
+
+The site is deliberately plain. Courses and lessons appear as typographic rows separated by thin rules instead of cards or tiles, the logo is the only graphic element, and the catalogue starts directly below the header without introductory copy. Typography uses the reader's system serif for prose, sans-serif for controls and metadata, and monospace for code, so no web font is downloaded. The dark theme is the default; a warm light theme is available from the header control, and an explicit choice is remembered for later visits.
+
 ## Search
 
 The build emits a static search index containing titles, descriptions, tags, and plain text extracted from Markdown. The browser loads it on first use and performs typo-tolerant fuzzy search locally with Fuse.js. No search service or server is required.

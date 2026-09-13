@@ -1,6 +1,6 @@
 ---
 name: fix-lesson
-description: Fix one existing English Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson LESSON_SLUG FIX_INSTRUCTION` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, OpenSpec, and validation constraints as `add-lesson`.
+description: Fix one existing English Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson LESSON_SLUG FIX_INSTRUCTION` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, domain-rule, and validation constraints as `add-lesson`.
 ---
 
 # Fix Lesson
@@ -21,13 +21,12 @@ If the instruction remains materially ambiguous after loading the target and its
 
 ## 1. Load the current rules
 
-1. Locate the repository root and read every applicable `AGENTS.md`.
-2. Read `openspec/specs/course-content/spec.md` completely and freshly. Treat both general lesson rules and course-specific requirements as authoritative.
-3. Read `../add-lesson/SKILL.md`, resolving the path relative to this skill, completely and freshly. Apply its current content, research, identity, consistency, and verification constraints wherever they govern an existing lesson.
-4. Inspect `src/content.config.ts` and repository validation commands.
-5. Preserve unrelated and pre-existing changes in the worktree.
+1. Locate the repository root and read every applicable `AGENTS.md` completely and freshly. Treat its domain rules as authoritative.
+2. Read `../add-lesson/SKILL.md`, resolving the path relative to this skill, completely and freshly. Apply its current content, research, identity, consistency, and verification constraints wherever they govern an existing lesson.
+3. Inspect `src/content.config.ts` and repository validation commands.
+4. Preserve unrelated and pre-existing changes in the worktree.
 
-Do not edit the specification or `add-lesson` to make a conflicting correction permissible. Creation-only instructions from `add-lesson`—including collecting a new title and position, deriving a new lesson ID, creating a file, and registering a new curriculum entry—do not apply. When its creation workflow conflicts with this editing workflow, follow this skill.
+Do not edit the domain rules or `add-lesson` to make a conflicting correction permissible. Creation-only instructions from `add-lesson`—including collecting a new title and position, deriving a new lesson ID, creating a file, and registering a new curriculum entry—do not apply. When its creation workflow conflicts with this editing workflow, follow this skill.
 
 If the requested correction would violate a fixed count, fixed order, prescribed outline, one-topic boundary, 30-minute limit, backward-dependency rule, or another requirement, stop and explain the conflict.
 
@@ -39,9 +38,9 @@ Before editing:
 2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
 3. Resolve exactly one parent `knowledge/courses/<course-id>.md` whose `lessons` array contains the exact slug. Confirm that the slug begins with that course's frontmatter slug followed by `/`.
 4. Read the target lesson, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
-5. Check the requested correction against every applicable course-specific OpenSpec requirement and against neighboring lessons to prevent duplication, gaps, and forward dependencies.
+5. Check the requested correction against every applicable rule in `AGENTS.md` and against neighboring lessons to prevent duplication, gaps, and forward dependencies.
 
-Pause when an invalid identity, missing parent reference, duplicate topic, ambiguous requested outcome, or specification conflict requires a material author choice.
+Pause when an invalid identity, missing parent reference, duplicate topic, ambiguous requested outcome, or conflict with the domain rules requires a material author choice.
 
 Preserve the existing lesson slug, source path, title, and topic unless the fix instruction explicitly requires changing the relevant value. Always preserve the curriculum position. Do not turn a correction into a new lesson, add a second topic, move the lesson, create or delete lesson files, or alter unrelated curriculum entries. If the requested material belongs in a separate lesson, stop and recommend using `add-lesson` instead.
 
@@ -63,7 +62,7 @@ Apply the requested correction completely while preserving unaffected wording an
 - Follow terminology, formatting, emphasis, command, link, and scope requirements specific to the course.
 - Preserve the frontmatter shape required by `src/content.config.ts`. Update the description and tags only when the corrected lesson makes them inaccurate; keep tags concise, reusable, lowercase, and consistent with the course.
 - Use valid Markdown, fenced-code language identifiers, accurate examples, and concise headings. Do not repeat the title as an H1 because the page layout renders it from frontmatter.
-- Do not add an installation guide, prerequisites section, or cheatsheet. Include setup only when the requested correction makes it necessary to the approved topic and the specification permits it.
+- Do not add an installation guide, prerequisites section, or cheatsheet. Include setup only when the requested correction makes it necessary to the approved topic and the domain rules permit it.
 
 Change the parent course or another lesson only when the requested correction would otherwise leave a factual inconsistency or broken reference. Keep every such edit minimal and within the author's instruction.
 
@@ -82,7 +81,7 @@ Pause only if resolving a collision or choosing the intended identity requires a
 
 ## 6. Verify the result
 
-Re-read the corrected lesson, parent course, all course lessons affected by its dependencies, the applicable OpenSpec requirements, and the relevant `add-lesson` constraints. Confirm:
+Re-read the corrected lesson, parent course, all course lessons affected by its dependencies, the applicable domain rules, and the relevant `add-lesson` constraints. Confirm:
 
 - The requested correction is complete and no unrelated content changed.
 - The lesson's explicit slug still resolves uniquely, begins with the parent course slug, and exactly matches its course reference.
