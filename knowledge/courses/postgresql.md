@@ -1,6 +1,6 @@
 ---
 slug: postgresql
-title: PostgreSQL Data Integrity, Performance, and Concurrency
+title: PostgreSQL
 catalogOrder: 60
 description: Use PostgreSQL to control access, protect relationships, tune queries, coordinate concurrent work, and store flexible JSONB data.
 tags:
@@ -19,9 +19,10 @@ lessons:
   - postgresql/row-and-table-locks
   - postgresql/advisory-locks
   - postgresql/jsonb
+  - postgresql/coalesce
 ---
 
-Learn to keep PostgreSQL data correct and queries efficient while multiple sessions work at the same time. Start with the `psql` terminal client, schemas, and access control. Then use transactions and foreign keys, measure query plans, and design indexes. The final lessons explain row versions, vacuum, locks, and JSONB.
+Learn to keep PostgreSQL data correct and queries efficient while multiple sessions work at the same time. Start with the `psql` terminal client, schemas, and access control. Then use transactions and foreign keys, measure query plans, and design indexes. The final lessons explain row versions, vacuum, locks, JSONB, and fallback values with `COALESCE`.
 
 Each lesson includes SQL examples and a local exercise to explore the feature's guarantees and costs.
 
