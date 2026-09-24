@@ -44,11 +44,7 @@ Confirm the server answers:
 redis-cli PING
 ```
 
-It replies `PONG`, and you are ready for the first lesson. To stop Redis and remove it from your login services later, run:
-
-```sh
-brew services stop redis
-```
+It replies `PONG`, and you are ready for the first lesson.
 
 ## What you will learn
 

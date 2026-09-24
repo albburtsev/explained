@@ -191,9 +191,7 @@ The deeper consequence of a flat key space is that **keys are the only index**. 
 
 ## Iterate with `SCAN`, never with `KEYS`
 
-`KEYS pattern` returns every matching key. It is O(N) over the entire key space, and because Redis executes commands one at a time, it holds the server for its whole duration. The documentation is blunt about it: use extreme care in production, treat it as a debugging command, and do not put it in regular application code.
-
-`SCAN` is the production answer: a cursor-based iterator that does O(1) work per call. Start at cursor `0`, pass back the cursor the server returns, and stop when that cursor is `0` again. Against a key space holding three user keys, a full iteration looks like this:
+A key scheme only pays off if you can walk it, and the shared prefix is what makes that possible. The `redis-cli` lesson introduced the cursor loop: start `SCAN` at cursor `0`, pass back the cursor the server returns, and stop when that cursor is `0` again. Applied to a family of keys, a full iteration looks like this:
 
 ```sh
 127.0.0.1:6379> SCAN 0 MATCH "app:user:*" COUNT 100
@@ -205,9 +203,9 @@ The deeper consequence of a flat key space is that **keys are the only index**. 
 2) 1) "app:user:3155"
 ```
 
-The reply is always a two-element array: the next cursor, then the keys found in that step. `MATCH` filters with the same glob patterns as `KEYS`, `COUNT` hints at how much work to do per call, and `TYPE` restricts results to one value type.
+`MATCH` filters with glob patterns, `COUNT` hints at how much work to do per call, and `TYPE` restricts the results to one value type. Because a full iteration may return the same key more than once, make whatever you do with each key safe to repeat. `SSCAN`, `HSCAN`, and `ZSCAN` iterate the members of one large collection the same way.
 
-The guarantees are weaker than a snapshot. A key present for the whole iteration is returned at least once, but it may be returned more than once, and keys added or deleted during the iteration may or may not appear, so make whatever you do with each key safe to repeat. From the shell, `redis-cli --scan --pattern 'app:user:*'` wraps the same iteration, and `SSCAN`, `HSCAN`, and `ZSCAN` do the same for the members of one large collection.
+`KEYS pattern` answers the same question in one reply, and that is exactly the problem: it is O(N) over the whole key space and holds the single command thread for the entire scan. The documentation calls it a debugging command and tells you to keep it out of application code.
 
 ## Keep any single key from becoming a hazard
 

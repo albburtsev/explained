@@ -191,7 +191,7 @@ Choose it when a burst is a legitimate pattern — a page that issues several AP
 
 ## Keep limiter keys on one Cluster node
 
-Redis Cluster splits the keyspace into 16384 hash slots and assigns each slot to a node. A key's slot comes from a hash of its name, so different keys usually land on different nodes.
+Redis Cluster assigns each key to one of 16384 hash slots, so keys with unrelated names usually land on different nodes.
 
 A limiter built on one key per client is unaffected. `ratelimit:user:42:1699999920` lives in exactly one slot on exactly one node, every server that increments it reaches that same node, and the count stays correct.
 
@@ -214,7 +214,7 @@ Answer these before reading the responses below:
 4. A service allows 100 requests per minute with a fixed window. What is the largest number of requests a client can send in a two-second period?
 5. Under a sliding window log with a limit of 3, the three entries were recorded at `1699999920000`, `1699999935000`, and `1699999950000`. At what time does the client regain its first free slot?
 
-No. `INCR` reads, adds, and writes in one indivisible step, and Redis runs commands one at a time, so each server receives a different number. Question 2: the window start in the key means a new window uses a new key, so no counter has to be reset while requests are arriving. Question 3: the key exists with the count `1` and no expiry, so it never leaves the current window and the user is eventually blocked forever. Question 4: about 200, by spending a full window just before a boundary and another full window just after it. Question 5: at `1699999980000`, exactly 60 seconds after the oldest entry, when `ZREMRANGEBYSCORE` drops it from the window.
+Answers: 1. No — `INCR` reads, adds, and writes in one indivisible step, and Redis runs commands one at a time, so each server receives a different number. 2. The window start in the key means a new window uses a new key, so no counter has to be reset while requests are arriving. 3. The key exists with the count `1` and no expiry, so it never leaves the current window and the user is eventually blocked forever. 4. About 200, by spending a full window just before a boundary and another full window just after it. 5. At `1699999980000`, exactly 60 seconds after the oldest entry, when `ZREMRANGEBYSCORE` drops it from the window.
 
 ## Official resources
 

@@ -21,7 +21,7 @@ Redis is distributed as a Homebrew formula, so you need Homebrew on your machine
 brew install redis
 ```
 
-The formula installs both `redis-server` and `redis-cli`. Confirm that the client is on your path with `redis-cli --version`, which prints a line such as `redis-cli 8.10.1`.
+The formula installs both `redis-server` and `redis-cli`. Confirm that the client is on your path with `redis-cli --version`, which prints a line such as `redis-cli 8.6.0`.
 
 ## Start the server
 
