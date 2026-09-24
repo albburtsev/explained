@@ -105,7 +105,15 @@ export async function executiveReportWorkflow(
 }
 ```
 
-`proxyActivities` creates a typed Activity proxy. Calling it schedules an Activity through Temporal; it does not import and execute the Activity implementation inside the Workflow runtime. The timeout is required, because external work must not run without a limit.
+These few lines are where orchestration ends and real work begins, so read them closely.
+
+`proxyActivities` returns an object that looks like your Activities module: one function per Activity, with the same name and the same arguments. The `typeof activities` type argument is what gives it those types, copied from the module imported on the line above. The braces then pull one of those functions, `deliverExecutiveReport`, out of the object.
+
+Note that the import is `import type`. Workflow code cannot import an Activity implementation, because the two run in different places. Your Workflow runs inside the Worker's Workflow sandbox. Temporal may re-run that code from the start to rebuild the state of the execution, so it must not touch the network, the file system, or any other external system. TypeScript removes an `import type` line when it compiles, so no Activity code reaches the Workflow bundle. Only the types remain, which is enough for autocompletion and for a compile error when the arguments do not match.
+
+So calling `deliverExecutiveReport(reportDate)` does not run the function you wrote in `src/activities.ts`. It asks the Service to schedule an `Activity Task` on the Task Queue, and returns a Promise straight away. The Service writes that scheduling into the Event History. A Worker polling `executive-report` then takes the task and runs the real function in an ordinary Node.js process, and the Service writes the result into the history as well. Awaiting the Promise gives you that saved result. This is what makes the result durable: the Service keeps it, instead of holding it only in the memory of a process that may crash.
+
+The options object is required. The SDK needs either `startToCloseTimeout` or `scheduleToCloseTimeout`, and fails if you set neither. Here `startToCloseTimeout: '1 minute'` limits one attempt: if a Worker starts the Activity and reports no result within a minute, that attempt is dropped instead of hanging forever. A later lesson adjusts these options and the retries that go with them.
 
 In `src/worker.ts`, keep the generated connection and registration code, but change the Worker's Task Queue:
 
