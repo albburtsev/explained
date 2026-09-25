@@ -551,6 +551,61 @@ button { color: inherit; }
   border-left: 2px solid var(--color-accent);
 }
 
+.prose details {
+  margin: var(--space-6) 0;
+  padding-block: var(--space-2);
+  border-block: 1px solid var(--color-border-subtle);
+}
+
+.prose summary {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding-block: var(--space-1);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+.prose summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose summary::before {
+  content: '+';
+  flex: none;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+}
+
+.prose details[open] summary::before {
+  content: '\2212';
+}
+
+.prose summary:hover {
+  color: var(--color-accent);
+}
+
+.prose summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.prose details[open] summary {
+  margin-block-end: var(--space-2);
+}
+
+.prose details > :not(summary):first-of-type {
+  margin-block-start: 0;
+}
+
+.prose details > :last-child {
+  margin-block-end: 0;
+}
+
 .prose table {
   display: block;
   width: max-content;

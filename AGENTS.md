@@ -42,6 +42,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - State required software dependencies concisely inside the relevant setup guidance, using the shortest accurate version constraint such as `Node.js v20+`; do not add a separate prerequisites section or enumerate versions when one accurate range is enough.
 - Do not provide commands or procedures to install, upgrade, select, or verify the version of a dependency. Commands may still install or verify the course's primary tool and may initialize, configure, or run the learning project, including project generators that manage their own packages.
 - Do not generate a cheatsheet during routine course creation. Generate one only after an explicit request from the human author.
+- Never add a `:::details[Label]` collapsible disclosure by default when generating or revising a lesson. Add one only after an explicit request from the human author.
 - Write learner-facing prose for a reader with B2 English: choose the common word over the rare one, carry one idea per sentence, and prefer several short sentences to a long chain of clauses.
 - Keep the subject's own vocabulary intact. Simplify the wording around a domain term instead of replacing the term.
 - Wrap an important domain term in Markdown inline code at the point where it is defined or first explained. Leave later routine mentions unformatted unless they are a literal command, path, filename, or identifier.

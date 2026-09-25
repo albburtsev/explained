@@ -1,8 +1,17 @@
 import { unified } from 'unified';
+import remarkDirective from 'remark-directive';
 import remarkParse from 'remark-parse';
 
-const markdownParser = unified().use(remarkParse);
-const spacedContainers = new Set(['root', 'blockquote', 'list', 'listItem', 'table', 'tableRow']);
+const markdownParser = unified().use(remarkParse).use(remarkDirective);
+const spacedContainers = new Set([
+  'root',
+  'blockquote',
+  'list',
+  'listItem',
+  'table',
+  'tableRow',
+  'containerDirective',
+]);
 
 interface MarkdownNode {
   type: string;

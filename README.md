@@ -83,6 +83,8 @@ tags: [openspec, spec-driven-development, macos]
 
 Every course, lesson, and future cheatsheet source declares a human-readable `slug` of at most 64 characters. A course uses one lowercase kebab-case segment. A lesson or cheatsheet starts with its parent course slug, followed by `/` and one or more lowercase kebab-case topic segments. Slugs are globally unique across all content types, and authoring workflows derive them automatically rather than requiring another human-provided field.
 
+Lesson bodies are GitHub-flavored Markdown with one extra construct: a `:::details[Label]` block renders as a collapsible disclosure, closed by default, for an explanation a reader may skip. Its content stays in the search index, so a lesson must still read correctly with every such block closed.
+
 Astro uses the explicit `slug` as the content entry ID, route, and typed reference key. To add content, create the lesson Markdown file and add its slug to the parent course's `lessons` list. Missing references fail the build. Treat a published slug as stable because changing it changes identity and may require coordinated reference and route updates.
 
 ## Interface

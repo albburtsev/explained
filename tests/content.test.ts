@@ -7,6 +7,11 @@ describe('content helpers', () => {
     expect(markdownToPlainText(markdown)).toBe('Hello, world! Run node app.ts. Read more.');
   });
 
+  it('extracts searchable text from a details block', () => {
+    const markdown = ':::details[Why it matters]\nThe Service keeps the result.\n:::';
+    expect(markdownToPlainText(markdown)).toBe('Why it matters The Service keeps the result.');
+  });
+
   it('builds GitHub Pages-aware routes', () => {
     expect(normalizeBase('/explained/')).toBe('/explained');
     expect(normalizeBase('/')).toBe('');
