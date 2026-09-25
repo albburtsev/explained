@@ -85,11 +85,13 @@ Every course, lesson, and future cheatsheet source declares a human-readable `sl
 
 Lesson bodies are GitHub-flavored Markdown with one extra construct: a `:::details[Label]` block renders as a collapsible disclosure, closed by default, for an explanation a reader may skip. Its content stays in the search index, so a lesson must still read correctly with every such block closed.
 
+A lesson may embed raster illustrations stored next to it in `knowledge/lessons/<course-id>/<lesson-id>/` and referenced with a relative Markdown image such as `![Alt text](./<lesson-id>/<name>.png)`. Astro optimizes them with `sharp` at build time.
+
 Astro uses the explicit `slug` as the content entry ID, route, and typed reference key. To add content, create the lesson Markdown file and add its slug to the parent course's `lessons` list. Missing references fail the build. Treat a published slug as stable because changing it changes identity and may require coordinated reference and route updates.
 
 ## Interface
 
-The site is deliberately plain. Courses and lessons appear as typographic rows separated by thin rules instead of cards or tiles, the logo is the only graphic element, and the catalogue starts directly below the header without introductory copy. Typography uses the reader's system serif for prose, sans-serif for controls and metadata, and monospace for code, so no web font is downloaded. The dark theme is the default; a warm light theme is available from the header control, and an explicit choice is remembered for later visits.
+The site is deliberately plain. Courses and lessons appear as typographic rows separated by thin rules instead of cards or tiles, the logo is the only interface graphic (lesson illustrations are content), and the catalogue starts directly below the header without introductory copy. Typography uses the reader's system serif for prose, sans-serif for controls and metadata, and monospace for code, so no web font is downloaded. The dark theme is the default; a warm light theme is available from the header control, and an explicit choice is remembered for later visits.
 
 ## Search
 

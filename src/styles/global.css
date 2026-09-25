@@ -551,6 +551,14 @@ button { color: inherit; }
   border-left: 2px solid var(--color-accent);
 }
 
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-block: var(--space-6);
+  border-radius: var(--radius-md);
+}
+
 .prose details {
   margin: var(--space-6) 0;
   padding-block: var(--space-2);
