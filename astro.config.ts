@@ -17,7 +17,8 @@ export default defineConfig({
       rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }]],
     }),
     shikiConfig: {
-      theme: 'github-dark-default',
+      themes: { light: 'github-light-default', dark: 'github-dark-default' },
+      defaultColor: false,
       wrap: true,
     },
   },
