@@ -10,7 +10,7 @@ tags:
   - object-storage
 ---
 
-The previous lesson ended with events arriving in the platform. Something reads them from Kafka and writes them into object storage as files — usually Parquet, the columnar format analytical scans like. That is where the next problem starts: a folder full of Parquet files is not a table. It has no agreed schema, no way to add a column without touching history, no definition of "the current contents", and no rule that stops two writers from corrupting each other's work.
+The previous lesson ended with source data arriving in the platform. Ingestion jobs write it into object storage as files — usually Parquet, the columnar format analytical scans like. That is where the next problem starts: a folder full of Parquet files is not a table. It has no agreed schema, no way to add a column without touching history, no definition of "the current contents", and no rule that stops two writers from corrupting each other's work.
 
 `Apache Iceberg` is an open table format for huge analytic datasets: a specification for the metadata that turns a set of files in object storage into a table with a schema, versions, and safe concurrent writes. The Iceberg documentation puts it as adding tables to compute engines — Spark, Trino, PrestoDB, Flink, Hive, Impala — with a format that "works just like a SQL table".
 
@@ -105,7 +105,7 @@ Versions 1, 2, and 3 are complete and adopted; version 4 is under active develop
 
 Iceberg is a good fit when these appear together:
 
-- **Large append-heavy tables landed from a stream**, where readers need a consistent view while ingestion keeps committing.
+- **Large append-heavy tables fed by continuous ingestion**, where readers need a consistent view while ingestion keeps committing.
 - **One table, several engines.** Batch processing, ad hoc SQL, and machine learning frameworks read the same tables without an export step for each.
 - **History that must be queryable.** Reproducible reports, audits, and a rollback path after a bad load.
 - **Targeted deletes and updates in an otherwise immutable lake**, such as removing one customer's rows on request.

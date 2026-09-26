@@ -57,7 +57,7 @@ The limits follow directly from what Trino is, and mistaking them is the usual w
 
 **It is not for OLTP.** The documentation is explicit that Trino is not a replacement for MySQL, PostgreSQL, or Oracle. There is no transactional workload here: no point lookup of one row by primary key in a millisecond, no high-rate single-row updates, no serving path for an application. The `MERGE` and `UPDATE` support on connectors like Iceberg is batch-shaped data management, not an OLTP write path. Analytical questions over many rows are the target; single-row operations are not.
 
-**It is tuned for interactive analytics, not long ETL.** By default a Trino query has no mid-query fault tolerance: if a worker dies, the query fails and must be rerun from the start. That is a deliberate trade for speed. `Fault-tolerant execution` exists as an opt-in mode with `QUERY` and `TASK` retry policies, where `TASK` requires an exchange manager spooling intermediate data to external storage — but it is disabled by default and adds latency for short queries. The documentation's own recommendation is to run separate clusters for batch and interactive workloads. If your job runs for six hours and must survive node failures, reach for a batch engine or split the work into steps that a scheduler retries.
+**It is tuned for interactive analytics, not long ETL.** By default a Trino query has no mid-query fault tolerance: if a worker dies, the query fails and must be rerun from the start. That is a deliberate trade for speed. `Fault-tolerant execution` exists as an opt-in mode with `QUERY` and `TASK` retry policies, where `TASK` requires an exchange manager spooling intermediate data to external storage — but it is disabled by default and adds latency for short queries. The documentation's own recommendation is to run separate clusters for batch and interactive workloads. If your job runs for six hours and must survive node failures, reach for a batch engine such as Spark, or split the work into steps that a scheduler retries.
 
 **Queries are memory-bound.** Because Trino holds intermediate results in memory, a query that needs more than the cluster has does not slow down gracefully — it is killed. Limits such as `query.max-memory-per-node` and `query.max-memory` exist precisely to enforce this. A join whose build side does not fit, or an aggregation over unexpectedly high cardinality, fails rather than spilling its way to a slow answer.
 
@@ -71,7 +71,7 @@ The limits follow directly from what Trino is, and mistaking them is the usual w
 - **Ad hoc questions that cross systems.** Enriching event data in the lake with reference data from an operational database, without waiting to build a pipeline.
 - **Reporting and large aggregations.** Data analysis, aggregating large data sets, and producing reports — the OLAP work Trino names as its purpose.
 - **A single SQL entry point.** Giving analysts one endpoint and one dialect for many sources, so tool configuration stops multiplying with the number of storage systems.
-- **Exploration before committing to a pipeline.** Query the raw data in place, learn what is there, and only then decide what deserves a modeled table and a scheduled job — which is where the next lesson, on Airflow, picks up.
+- **Exploration before committing to a pipeline.** Query the raw data in place, learn what is there, and only then decide what deserves a modeled table built by a batch job — the work of Apache Spark, the next lesson.
 
 ## Check your understanding
 

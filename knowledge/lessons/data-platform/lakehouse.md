@@ -75,7 +75,7 @@ A lakehouse fits when several of these are true:
 
 It fits badly when data volume is modest and a single managed warehouse would answer every question with far less operational work, or when the requirement is transactional or sub-second serving. "Everyone else has one" is not a reason; the lakehouse trades vendor complexity for complexity you run yourself.
 
-In the platform map from the first lesson, this is the storage layer: Kafka delivers events into it, engines query the tables it holds, and a scheduler keeps ingestion and table maintenance running. The next lesson looks at one such engine, Trino, and at what it means to query data you do not own.
+In the platform map from the first lesson, this is the storage layer: ingestion jobs deliver data into it, engines query and transform the tables it holds, and a scheduler keeps ingestion and table maintenance running. The next lesson looks at one such engine, Trino, and at what it means to query data you do not own.
 
 To check the model, take one table you work with today and ask where each layer would sit: which file format holds the rows, which table format defines the table, which catalog names it, and which engines read it. If any answer is "the database decides," you are describing a warehouse, not a lakehouse.
 

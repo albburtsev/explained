@@ -8,7 +8,7 @@ tags:
   - data-engineering
 ---
 
-A data platform is never one job. Events land in Kafka, a batch writes them into an Iceberg table, a second job builds an aggregate on top of that table, and a report reads the result through Trino. Each step depends on the one before it, each can fail, and each must run again tomorrow.
+A data platform is never one job. Raw files land in object storage, a Spark job writes them into an Iceberg table, a second job builds an aggregate on top of that table, and a report reads the result through Trino. Each step depends on the one before it, each can fail, and each must run again tomorrow.
 
 Cron can start all four at fixed times. It cannot express that the aggregate must wait for the ingestion job to succeed, retry only the step that failed, or rerun last Tuesday after someone finds a bug. Apache Airflow exists for exactly that gap.
 
@@ -65,7 +65,7 @@ Airflow 3, released in April 2025, added versioning so a run completes on the DA
 
 ## Know where Airflow stops
 
-Airflow is a batch orchestrator, and its documentation is explicit about the boundary: it "is designed for finite, batch-oriented workflows", and "is not intended for continuously running, event-driven, or streaming workloads". Kafka handles the continuous stream; Airflow picks the data up afterward in batches.
+Airflow is a batch orchestrator, and its documentation is explicit about the boundary: it "is designed for finite, batch-oriented workflows", and "is not intended for continuously running, event-driven, or streaming workloads". A streaming system handles the continuous flow; Airflow picks the data up afterward in batches.
 
 It is also not a data processing engine. Airflow triggers work in other systems — a Trino query, a Spark job, a container — and records the outcome. Data should not travel through the scheduler. The `XCom` mechanism that passes values between tasks is "only designed for small amounts of data; do not use them to pass around large values, like dataframes."
 
@@ -91,4 +91,4 @@ Airflow fits work that has a clear start and end and repeats:
 - [TaskFlow tutorial](https://airflow.apache.org/docs/apache-airflow/stable/tutorial/taskflow.html)
 - [Best practices](https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html)
 
-That completes the tour. Kafka moves events as they happen, Iceberg gives files in object storage the behavior of tables, the lakehouse architecture puts warehouse guarantees on that storage, Trino answers SQL across it, and Airflow decides what runs, in what order, and what happens when a step fails. When you meet a data platform diagram, the useful question is no longer what each box is called, but which of those jobs it is doing.
+That completes the tour. Iceberg gives files in object storage the behavior of tables, the lakehouse architecture puts warehouse guarantees on that storage, Trino answers SQL across it, Spark builds and maintains the tables with long processing jobs, and Airflow decides what runs, in what order, and what happens when a step fails. When you meet a data platform diagram, the useful question is no longer what each box is called, but which of those jobs it is doing.
