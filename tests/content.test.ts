@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { coursePath, lessonPath, markdownToPlainText, normalizeBase } from '../src/lib/content';
+import {
+  coursePath,
+  coursesPath,
+  homePath,
+  lessonPath,
+  markdownToPlainText,
+  normalizeBase,
+  searchIndexPath,
+} from '../src/lib/content';
 
 describe('content helpers', () => {
   it('extracts searchable text from Markdown', () => {
@@ -20,5 +28,17 @@ describe('content helpers', () => {
       '/explained/courses/openspec/introduction/',
     );
     expect(coursePath('/', 'openspec')).toBe('/courses/openspec/');
+  });
+
+  it('prefixes routes of the non-default locale', () => {
+    expect(homePath('/explained/', 'en')).toBe('/explained/');
+    expect(homePath('/explained/', 'ru')).toBe('/explained/ru/');
+    expect(coursesPath('/explained/', 'ru')).toBe('/explained/ru/courses/');
+    expect(coursePath('/explained/', 'openspec', 'ru')).toBe('/explained/ru/courses/openspec/');
+    expect(lessonPath('/explained/', 'openspec/introduction', 'ru')).toBe(
+      '/explained/ru/courses/openspec/introduction/',
+    );
+    expect(searchIndexPath('/explained/', 'en')).toBe('/explained/search-index.json');
+    expect(searchIndexPath('/', 'ru')).toBe('/ru/search-index.json');
   });
 });

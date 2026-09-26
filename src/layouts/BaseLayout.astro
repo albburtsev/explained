@@ -1,22 +1,28 @@
 ---
 import Search from '../components/Search.astro';
+import { homePath } from '../lib/content';
+import { otherLocale, t, type Locale } from '../lib/i18n';
 import '../styles/global.css';
 
 interface Props {
+  locale: Locale;
+  /** The same page in the other locale. */
+  alternateUrl: string;
   title?: string;
   description?: string;
 }
 
-const {
-  title,
-  description = 'A personal knowledge base built from structured Markdown.',
-} = Astro.props;
-const pageTitle = title ? `${title} · Explained` : 'Explained · A personal knowledge base';
-const homeUrl = import.meta.env.BASE_URL;
+const { locale, alternateUrl, title } = Astro.props;
+const messages = t(locale);
+const alternateLocale = otherLocale(locale);
+const alternateMessages = t(alternateLocale);
+const description = Astro.props.description ?? messages.siteDescription;
+const pageTitle = title ? `${title} · Explained` : `Explained · ${messages.siteTagline}`;
+const homeUrl = homePath(import.meta.env.BASE_URL, locale);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -34,36 +40,52 @@ const homeUrl = import.meta.env.BASE_URL;
         document.documentElement.style.colorScheme = theme;
       })();
     </script>
+    <link rel="alternate" hreflang={alternateLocale} href={alternateUrl} />
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <title>{pageTitle}</title>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
+    <a class="skip-link" href="#main-content">{messages.skipToContent}</a>
     <header class="site-header">
       <div class="header-inner">
-        <a class="wordmark" href={homeUrl} aria-label="Explained home">
+        <a class="wordmark" href={homeUrl} aria-label={messages.homeLabel}>
           <span class="wordmark-mark" aria-hidden="true">E</span>
           <span>Explained</span>
         </a>
-        <Search />
-        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to light theme">Light</button>
+        <Search locale={locale} />
+        <div class="header-controls">
+          <a
+            class="locale-toggle"
+            href={alternateUrl}
+            hreflang={alternateLocale}
+            lang={alternateLocale}
+            aria-label={alternateMessages.switchLanguage}
+          >{alternateMessages.languageLabel}</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label={messages.switchToLightTheme}>{messages.lightTheme}</button>
+        </div>
       </div>
     </header>
     <main id="main-content">
       <slot />
     </main>
     <footer class="site-footer">
-      <a href="https://github.com/albburtsev/explained">View source</a>
+      <a href="https://github.com/albburtsev/explained">{messages.viewSource}</a>
     </footer>
     <script>
+      import { documentLocale, t } from '../lib/i18n';
+
+      const messages = t(documentLocale());
       const themeToggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
 
       const activeTheme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
       const syncThemeToggle = () => {
         if (!themeToggle) return;
         const nextTheme = activeTheme() === 'light' ? 'dark' : 'light';
-        themeToggle.textContent = nextTheme === 'light' ? 'Light' : 'Dark';
-        themeToggle.setAttribute('aria-label', `Switch to ${nextTheme} theme`);
+        themeToggle.textContent = nextTheme === 'light' ? messages.lightTheme : messages.darkTheme;
+        themeToggle.setAttribute(
+          'aria-label',
+          nextTheme === 'light' ? messages.switchToLightTheme : messages.switchToDarkTheme,
+        );
       };
 
       themeToggle?.addEventListener('click', () => {
@@ -123,7 +145,7 @@ const homeUrl = import.meta.env.BASE_URL;
         const button = document.createElement('button');
         button.className = 'code-copy-button';
         button.type = 'button';
-        button.title = 'Copy code';
+        button.title = messages.copyCode;
         button.innerHTML = `
           <svg class="code-copy-icon" aria-hidden="true" viewBox="0 0 24 24">
             <rect x="8" y="8" width="13" height="13" rx="2"></rect>
@@ -132,8 +154,10 @@ const homeUrl = import.meta.env.BASE_URL;
           <svg class="code-copy-success-icon" aria-hidden="true" viewBox="0 0 24 24">
             <path d="m5 12 4 4L19 6"></path>
           </svg>
-          <span class="sr-only" data-copy-status aria-live="polite">Copy code</span>
+          <span class="sr-only" data-copy-status aria-live="polite"></span>
         `;
+        const initialStatus = button.querySelector<HTMLElement>('[data-copy-status]');
+        if (initialStatus) initialStatus.textContent = messages.copyCode;
         wrapper.append(button);
 
         let resetTimer: number | undefined;
@@ -141,7 +165,7 @@ const homeUrl = import.meta.env.BASE_URL;
           const code = pre.querySelector('code');
           const copied = await copyText(code?.textContent ?? pre.textContent ?? '');
           const status = button.querySelector<HTMLElement>('[data-copy-status]');
-          const message = copied ? 'Copied' : 'Copy failed';
+          const message = copied ? messages.copied : messages.copyFailed;
 
           button.dataset.state = copied ? 'copied' : 'failed';
           button.title = message;
@@ -150,8 +174,8 @@ const homeUrl = import.meta.env.BASE_URL;
           window.clearTimeout(resetTimer);
           resetTimer = window.setTimeout(() => {
             delete button.dataset.state;
-            button.title = 'Copy code';
-            if (status) status.textContent = 'Copy code';
+            button.title = messages.copyCode;
+            if (status) status.textContent = messages.copyCode;
           }, 2000);
         });
       });

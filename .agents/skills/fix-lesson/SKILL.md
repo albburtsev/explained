@@ -38,12 +38,12 @@ Before editing:
 1. Validate that the required lesson-slug argument is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
 2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
 3. Resolve exactly one parent `knowledge/courses/<course-id>.md` whose `lessons` array contains the exact slug. Confirm that the slug begins with that course's frontmatter slug followed by `/`.
-4. Read the target lesson and its `.ru.md` translation when present, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
+4. Read the target lesson and its `.ru.md` translation, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
 5. Check the requested correction against every applicable rule in `AGENTS.md` and against neighboring lessons to prevent duplication, gaps, and forward dependencies.
 
 Pause when an invalid identity, missing parent reference, duplicate topic, ambiguous requested outcome, or conflict with the domain rules requires a material author choice.
 
-Preserve the existing lesson slug, source path, title, and topic unless the fix instruction explicitly requires changing the relevant value. Always preserve the curriculum position. Do not turn a correction into a new lesson, add a second topic, move the lesson, create or delete lesson files other than a missing translation, or alter unrelated curriculum entries. If the requested material belongs in a separate lesson, stop and recommend using `add-lesson` instead.
+Preserve the existing lesson slug, source path, title, and topic unless the fix instruction explicitly requires changing the relevant value. Always preserve the curriculum position. Do not turn a correction into a new lesson, add a second topic, move the lesson, create or delete lesson files, or alter unrelated curriculum entries. If the requested material belongs in a separate lesson, stop and recommend using `add-lesson` instead.
 
 ## 3. Research the correction
 
@@ -57,7 +57,6 @@ Apply the requested correction completely while preserving unaffected wording an
 
 - Apply the correction to the English source first, then carry the same change into the Russian translation. Never change only one language.
 - Keep the source in English and the translation in Russian, and follow the `Languages and translations` rules in `AGENTS.md` and the translation step of `add-lesson`.
-- If the lesson has no `.ru.md` translation yet, create it from the corrected English source with the same `<NN>`, the same slug, and only `slug`, `title`, and `description` in its frontmatter.
 - Keep the lesson focused on exactly one topic and realistically completable within 1–30 minutes.
 - Address a beginner without a separate prerequisites section.
 - Include only the theory needed to begin practical work; move quickly to a concrete explanation, example, or small learner action when the topic permits it.
@@ -94,8 +93,8 @@ Re-read the corrected lesson and its translation, the parent course, all course 
 - The English source and the Russian translation carry the same correction. The translation has the same `<NN>` and slug, only `slug`, `title`, and `description` in its frontmatter, the same structure, and byte-identical code.
 - Every dependency points backward in the curriculum.
 - Course-specific requirements and verified facts are satisfied.
-- No lesson, installation guide, prerequisites section, or cheatsheet was added or removed; the only allowed new file is a missing translation.
+- No lesson, installation guide, prerequisites section, or cheatsheet was added or removed.
 
 Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands. Also run `git diff --check` and inspect the final diff. Do not stage or commit changes unless explicitly requested.
 
-Report the corrected lesson and translation paths, whether the translation was created, its explicit slug, a concise summary of the fix, every other file changed for consistency, validation results, and any verification that could not be completed.
+Report the corrected lesson and translation paths, its explicit slug, a concise summary of the fix, every other file changed for consistency, validation results, and any verification that could not be completed.

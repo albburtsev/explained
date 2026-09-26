@@ -23,4 +23,20 @@ const courses = defineCollection({
   }),
 });
 
-export const collections = { courses, lessons };
+const translationSchema = z.object({
+  slug: contentSlugSchema,
+  title: z.string().min(1),
+  description: z.string().min(1),
+}).strict();
+
+const courseTranslations = defineCollection({
+  loader: glob({ base: './knowledge/courses', pattern: '*.ru.md' }),
+  schema: translationSchema,
+});
+
+const lessonTranslations = defineCollection({
+  loader: glob({ base: './knowledge/lessons', pattern: '**/*.ru.md' }),
+  schema: translationSchema,
+});
+
+export const collections = { courses, lessons, courseTranslations, lessonTranslations };

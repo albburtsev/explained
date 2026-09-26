@@ -1,0 +1,62 @@
+---
+import { getCollection, render } from 'astro:content';
+import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import { coursePath, coursesPath, homePath, lessonPath } from '../../../../lib/content';
+import { locales, localeParam, otherLocale, t, type Locale } from '../../../../lib/i18n';
+import { getCourseLessons, localizeCourse, type LocalizedCourse } from '../../../../lib/localized-content';
+
+export async function getStaticPaths() {
+  const courses = await getCollection('courses');
+  return Promise.all(locales.flatMap((locale) => courses.map(async (course) => ({
+    params: { locale: localeParam(locale), course: course.id },
+    props: { locale, course: await localizeCourse(course, locale) },
+  }))));
+}
+
+interface Props {
+  locale: Locale;
+  course: LocalizedCourse;
+}
+
+const { locale, course } = Astro.props;
+const messages = t(locale);
+const base = import.meta.env.BASE_URL;
+const { Content } = await render(course.entry);
+const lessons = await getCourseLessons(course.source, locale);
+const alternateUrl = coursePath(base, course.id, otherLocale(locale));
+---
+
+<BaseLayout locale={locale} alternateUrl={alternateUrl} title={course.title} description={course.description}>
+  <div class="content-page">
+    <Breadcrumbs label={messages.breadcrumb} items={[
+      { label: messages.home, href: homePath(base, locale) },
+      { label: messages.courses, href: coursesPath(base, locale) },
+      { label: course.title },
+    ]} />
+    <div class="page-shell">
+      <header class="page-heading course-heading">
+        <p class="eyebrow">{messages.course} · {messages.lessonCount(lessons.length)}</p>
+        <h1>{course.title}</h1>
+        <p>{course.description}</p>
+        <div class="tag-list">{course.tags.map((tag) => <span>{tag}</span>)}</div>
+      </header>
+      <div class="course-layout">
+        <article class="prose"><Content /></article>
+        <aside class="curriculum" aria-labelledby="curriculum-heading">
+          <h2 id="curriculum-heading">{messages.lessons}</h2>
+          <ol>
+            {lessons.map((lesson, index) => (
+              <li>
+                <a href={lessonPath(base, lesson.id, locale)}>
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <div><strong>{lesson.title}</strong><small>{lesson.description}</small></div>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,39 @@
+---
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import CourseCard from '../../../components/CourseCard.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { coursesPath, homePath } from '../../../lib/content';
+import { localeStaticPaths, otherLocale, t, type Locale } from '../../../lib/i18n';
+import { getCatalog } from '../../../lib/localized-content';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const messages = t(locale);
+const courses = await getCatalog(locale);
+const alternateUrl = coursesPath(import.meta.env.BASE_URL, otherLocale(locale));
+---
+
+<BaseLayout locale={locale} alternateUrl={alternateUrl} title={messages.courses} description={messages.coursesDescription}>
+  <div class="content-page">
+    <Breadcrumbs label={messages.breadcrumb} items={[
+      { label: messages.home, href: homePath(import.meta.env.BASE_URL, locale) },
+      { label: messages.courses },
+    ]} />
+    <div class="page-shell">
+      <header class="page-heading">
+        <h1>{messages.courses}</h1>
+        <p>{messages.coursesIntro}</p>
+      </header>
+      <div class="course-list">
+        {courses.map((course) => <CourseCard course={course} locale={locale} />)}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

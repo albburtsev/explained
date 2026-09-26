@@ -26,7 +26,7 @@ Accept either the exact frontmatter `slug` or the exact frontmatter `title` of t
 4. Read the course file and every lesson referenced by its `lessons` array, in curriculum order, together with each `.ru.md` translation. Confirm that each reference resolves exactly once and belongs to the selected course.
 5. Preserve unrelated and pre-existing worktree changes.
 
-Treat the selected course file, its listed lesson files, and their translations as the complete editing scope. Create a missing translation from the refined English source. Do not add, delete, rename, or reorder lessons. Preserve course and lesson slugs, English titles, paths, `catalogOrder`, tags, and references. Change a Russian title only when it is not an accurate translation. A broken or ambiguous curriculum reference requires author input; do not guess its target.
+Treat the selected course file, its listed lesson files, and their translations as the complete editing scope. A missing translation is a validation error; report it instead of guessing the content. Do not add, delete, rename, or reorder lessons. Preserve course and lesson slugs, English titles, paths, `catalogOrder`, tags, and references. Change a Russian title only when it is not an accurate translation. A broken or ambiguous curriculum reference requires author input; do not guess its target.
 
 ## Refine the material
 

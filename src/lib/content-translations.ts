@@ -10,10 +10,20 @@ export function translationSourcePath(translationPath: string): string {
   return `${translationPath.slice(0, -translationSuffix.length)}.md`;
 }
 
+export function sourceTranslationPath(sourcePath: string): string {
+  return `${sourcePath.slice(0, -'.md'.length)}${translationSuffix}`;
+}
+
 export function contentTranslationErrors(sources: FrontmatterRecord[], translations: FrontmatterRecord[]): string[] {
   const errors: string[] = [];
   const sourcesByPath = new Map(sources.map((source) => [source.path, source]));
   const allowedFields = new Set<string>(translationFields);
+  const translationPaths = new Set(translations.map((translation) => translation.path));
+
+  for (const source of sources) {
+    const translationPath = sourceTranslationPath(source.path);
+    if (!translationPaths.has(translationPath)) errors.push(`${source.path}: missing Russian translation ${translationPath}`);
+  }
 
   for (const translation of translations) {
     const sourcePath = translationSourcePath(translation.path);

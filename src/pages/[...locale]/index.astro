@@ -1,0 +1,31 @@
+---
+import CourseCard from '../../components/CourseCard.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { homePath } from '../../lib/content';
+import { localeStaticPaths, otherLocale, t, type Locale } from '../../lib/i18n';
+import { getCatalog } from '../../lib/localized-content';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const messages = t(locale);
+const courses = await getCatalog(locale);
+const alternateUrl = homePath(import.meta.env.BASE_URL, otherLocale(locale));
+---
+
+<BaseLayout locale={locale} alternateUrl={alternateUrl}>
+  <div class="home-page page-shell">
+    <section class="course-catalog" aria-labelledby="courses-heading">
+      <h1 id="courses-heading" class="sr-only">{messages.courses}</h1>
+      <div class="course-list">
+        {courses.map((course) => <CourseCard course={course} locale={locale} />)}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

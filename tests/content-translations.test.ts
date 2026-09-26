@@ -39,8 +39,11 @@ describe('content translation validation', () => {
     expect(contentTranslationErrors(sources, translations)).toEqual([]);
   });
 
-  it('allows an English source without a translation', () => {
-    expect(contentTranslationErrors(sources, [])).toEqual([]);
+  it('reports an English source without a translation', () => {
+    expect(contentTranslationErrors(sources, [])).toEqual([
+      'knowledge/courses/typescript.md: missing Russian translation knowledge/courses/typescript.ru.md',
+      'knowledge/lessons/typescript/01-types.md: missing Russian translation knowledge/lessons/typescript/01-types.ru.md',
+    ]);
   });
 
   it('reports a translation without an English source', () => {
@@ -52,7 +55,7 @@ describe('content translation validation', () => {
       }),
     ];
 
-    expect(contentTranslationErrors(sources, translations)).toEqual([
+    expect(contentTranslationErrors([], translations)).toEqual([
       'knowledge/lessons/typescript/02-types.ru.md: translation has no English source at knowledge/lessons/typescript/02-types.md',
     ]);
   });
@@ -66,7 +69,7 @@ describe('content translation validation', () => {
       }),
     ];
 
-    expect(contentTranslationErrors(sources, translations)).toEqual([
+    expect(contentTranslationErrors(sources.slice(1), translations)).toEqual([
       'knowledge/lessons/typescript/01-types.ru.md: slug "typescript/tipy" must match English source slug "typescript/types"',
     ]);
   });
@@ -82,7 +85,7 @@ describe('content translation validation', () => {
       }),
     ];
 
-    expect(contentTranslationErrors(sources, translations)).toEqual([
+    expect(contentTranslationErrors(sources.slice(0, 1), translations)).toEqual([
       'knowledge/courses/typescript.ru.md: catalogOrder belongs only in the English source knowledge/courses/typescript.md',
       'knowledge/courses/typescript.ru.md: lessons belongs only in the English source knowledge/courses/typescript.md',
       'knowledge/courses/typescript.ru.md: missing description',
