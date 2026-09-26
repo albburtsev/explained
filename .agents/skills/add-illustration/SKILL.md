@@ -31,7 +31,7 @@ This skill needs a native image generation capability in the host. If none is av
 ## 2. Resolve the lesson
 
 1. Validate that the lesson-slug argument is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
-2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess.
+2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess.
 3. Read the whole lesson and the parent course in `knowledge/courses/`. Note any illustrations the lesson already has in `knowledge/lessons/<course-id>/<lesson-id>/`, so the new one matches their style and does not repeat them.
 
 ## 3. Understand what to illustrate

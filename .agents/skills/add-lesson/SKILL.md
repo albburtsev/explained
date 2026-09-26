@@ -45,7 +45,7 @@ Before writing:
 2. Derive a concise lowercase kebab-case lesson ID from the approved English title, following existing IDs.
 3. Confirm that the resolved parent course's frontmatter `slug` exactly matches the required argument. Derive the lesson slug as `<course-slug>/<lesson-id>`, keeping the complete value within 64 characters and every path segment in lowercase kebab-case.
 4. Search the frontmatter of every course, lesson, and cheatsheet source document and confirm that the derived slug is globally unique. If it collides, derive a more specific recognizable slug automatically; do not ask the author to supply one. Pause only if resolving the collision requires a material identity choice.
-5. Confirm that `knowledge/lessons/<course-id>/<lesson-id>.md` and its course reference do not already exist.
+5. Confirm that `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` and its course reference do not already exist.
 6. Compare the topic with every existing lesson to avoid duplication and preserve one topic per file.
 7. Confirm that the lesson can stand alone or depend only on lessons before its requested position. Never make it rely on a later lesson.
 8. Check the requested lesson against every applicable rule in `AGENTS.md` and against the parent course's existing curriculum.
@@ -60,7 +60,7 @@ Keep research proportional for stable, conceptual topics. Never fabricate a comm
 
 ## 5. Write the lesson
 
-Create `knowledge/lessons/<course-id>/<lesson-id>.md` with this exact frontmatter shape:
+Create `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md`, where `<NN>` is its two-digit position in `lessons`, with this exact frontmatter shape:
 
 ```yaml
 ---
@@ -87,7 +87,7 @@ Generate the description and tags from the finished lesson. Keep tags concise, r
 
 ## 6. Register the lesson
 
-Add `<course-slug>/<lesson-id>`—the new lesson's exact explicit slug—to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order.
+Add `<course-slug>/<lesson-id>`—the new lesson's exact explicit slug—to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order. Renumber later lesson files with `git mv` to match their new positions.
 
 Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the domain rules permit the edit. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
 

@@ -47,9 +47,9 @@ knowledge/
 │   └── openspec.md
 └── lessons/
     └── openspec/
-        ├── cli-and-project-files.md
-        ├── coding-agent-workflow.md
-        └── introduction.md
+        ├── 01-introduction.md
+        ├── 02-coding-agent-workflow.md
+        └── 03-cli-and-project-files.md
 ```
 
 A course defines its ordered curriculum through typed lesson references:
@@ -70,7 +70,7 @@ lessons:
 
 Every course declares a unique positive integer `catalogOrder`. Complete course catalogues sort by this value in descending order. The values are intentionally sparse—normally `10`, `20`, `30`, and so on—so an author can move or insert a course without renumbering the whole catalogue. This field is repository metadata rather than learner-facing content and does not affect slugs, routes, or lesson order. When a course is created, the workflow assigns it `10` for an empty catalogue or the greatest existing value plus `10`, placing the new course first without changing existing courses. The workflow never requests this value from the human author.
 
-A lesson is stored below its parent course ID:
+A lesson is stored below its parent course ID as `<NN>-<lesson-id>.md`, where `<NN>` is its two-digit position in the course `lessons` list and is not part of the slug:
 
 ```yaml
 ---

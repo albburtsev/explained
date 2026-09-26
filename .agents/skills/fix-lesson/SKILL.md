@@ -36,7 +36,7 @@ If the requested correction would violate a fixed count, fixed order, prescribed
 Before editing:
 
 1. Validate that the required lesson-slug argument is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
-2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
+2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
 3. Resolve exactly one parent `knowledge/courses/<course-id>.md` whose `lessons` array contains the exact slug. Confirm that the slug begins with that course's frontmatter slug followed by `/`.
 4. Read the target lesson, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
 5. Check the requested correction against every applicable rule in `AGENTS.md` and against neighboring lessons to prevent duplication, gaps, and forward dependencies.

@@ -17,7 +17,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - A lesson is the smallest unit of a course.
 - It covers exactly one topic.
 - It is designed to take between 1 and 30 minutes.
-- It is represented by one Markdown file.
+- It is represented by one Markdown file, `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md`, where `<NN>` is its two-digit position in the course `lessons` list. The number only sorts files and is not part of the slug; renumber the files when the order changes.
 
 ## Content identity
 
