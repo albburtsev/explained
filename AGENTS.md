@@ -71,7 +71,8 @@ Explained is a content-first knowledge base built from structured Markdown and p
 ## Site interface
 
 - The home page is a content-first catalogue: course entries begin immediately below the site header, without a visible `Explained` or `Courses` heading, introductory copy, promotional calls to action, or decorative artwork. Keep a non-visible semantic heading for assistive technology.
-- Sort every complete catalogue, on the home page and on `/courses`, by `catalogOrder` in descending order. Never let alphabetical title order override it.
+- The home page is the only course catalogue. Do not add a separate courses index page at `/courses/`; course and lesson routes keep the `courses/` prefix.
+- Sort the catalogue by `catalogOrder` in descending order. Never let alphabetical title order override it.
 - The Explained logo is the only graphic element in the site interface; illustrations requested by the author may appear only inside lesson content. Express search, theme selection, metadata, navigation, and state through text, typography, rules, and color. Render catalogue and curriculum entries as typographic list rows separated by subtle rules rather than cards, illustrations, or icon-led tiles.
 - Use a system serif role for content headings, course titles, and long-form prose; a system sans-serif role for controls, navigation, and metadata; and a system monospace role for code. Do not download an external font.
 - Keep spacing compact while preserving comfortable line height and contrast. Every page shares the same outer content width and gutters as the site header, so the layout does not shift between pages. On lesson pages, the lesson heading, article, and lesson navigation form a left-aligned reading column of about 65–75 characters per line inside that width. Content reflows on narrow viewports without horizontal page scrolling, overlap, clipped controls, or unreadably small prose.
@@ -79,6 +80,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Derive colors, typography roles, spacing, content widths, borders, and radii from a small semantic token set, and style every shared state from it, including focus, hover, code, search results, borders, and muted text.
 - Render the dark theme when no preference is saved. Provide a warm, paper-like light theme with equivalent semantic roles and readable contrast, not a cold or pure-white palette. Code highlighting follows the active theme.
 - Keep the theme control minimal and keyboard-accessible in the header. It communicates the next available theme, applies the alternate theme immediately, persists an explicit choice for later visits, and falls back safely to the dark default when preference storage is unavailable.
+- Breadcrumbs start with the home link and continue with the course and, on a lesson page, the lesson. Do not add a `Courses` crumb.
 - Keep shared chrome minimal: the header holds the Explained home link, search, the language switch, and the theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
 - Publish English at the existing routes and Russian under the `/ru/` prefix, with the same slugs. Every page, including search, uses the interface strings and content of its language.
 - Place the language switch directly before the theme control. It is a plain text link, `Ru` or `En`, that names the other language and opens the same page in that language.
