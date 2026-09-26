@@ -1,6 +1,6 @@
 interface:
   display_name: "Review Lesson"
-  short_description: "Review a lesson visually at two viewports"
+  short_description: "<lesson-slug> [review-focus] — Review a lesson visually"
   default_prompt: "Use $review-lesson <lesson-slug> [review focus] to inspect an existing lesson visually."
 
 dependencies:

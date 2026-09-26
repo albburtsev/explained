@@ -1,6 +1,7 @@
 ---
 name: add-lesson
-description: Add one new English Markdown lesson to an existing Explained course selected by a required course-slug argument and register it in the course's ordered outline. Use when the human author invokes `$add-lesson COURSE_SLUG` to create, write, insert, or append a lesson under `knowledge/lessons/`; require that argument before starting, gather any other missing author inputs, enforce the domain rules in `AGENTS.md`, and validate the published content.
+description: "`<course-slug> [lesson-request]` — Add one new English Markdown lesson to an existing Explained course selected by a required course-slug argument and register it in the course's ordered outline. Use when the human author invokes `$add-lesson` to create, write, insert, or append a lesson under `knowledge/lessons/`; require that argument before starting, gather any other missing author inputs, enforce the domain rules in `AGENTS.md`, and validate the published content."
+argument-hint: "<course-slug> [lesson-request]"
 ---
 
 # Add Lesson
