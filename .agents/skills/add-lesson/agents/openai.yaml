@@ -1,4 +1,4 @@
 interface:
   display_name: "Add Lesson"
-  short_description: "Add a lesson using its course slug"
+  short_description: "<course-slug> [lesson-request] — Add a lesson to a course"
   default_prompt: "Use $add-lesson <course-slug> to add an English lesson at a specified position in that course."

@@ -1,6 +1,7 @@
 ---
 name: review-lesson
-description: Visually review one existing Explained lesson selected by a required lesson-slug argument, with an optional focus instruction. Use when the human author invokes `$review-lesson LESSON_SLUG [REVIEW_FOCUS]` to inspect a lesson in the local site through Chrome DevTools MCP; start or reuse the development server, capture desktop and mobile screenshots, diagnose rendering defects, report only Major and Minor findings or a brief no-problems result, close every browser page opened by the review, and avoid editing files.
+description: "`<lesson-slug> [review-focus]` — Visually review one existing Explained lesson selected by a required lesson-slug argument, with an optional focus instruction. Use when the human author invokes `$review-lesson` to inspect a lesson in the local site through Chrome DevTools MCP; start or reuse the development server, capture desktop and mobile screenshots, diagnose rendering defects, report only Major and Minor findings or a brief no-problems result, close every browser page opened by the review, and avoid editing files."
+argument-hint: "<lesson-slug> [review-focus]"
 ---
 
 # Review Lesson

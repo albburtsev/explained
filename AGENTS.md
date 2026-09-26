@@ -67,3 +67,10 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Keep the theme control minimal and keyboard-accessible in the header. It communicates the next available theme, applies the alternate theme immediately, persists an explicit choice for later visits, and falls back safely to the dark default when preference storage is unavailable.
 - Keep shared chrome minimal: the header holds the Explained home link, search, and theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
 - Preserve existing behavior when changing the interface: routes, Markdown-rendered content, course ordering, curriculum links, previous and next lesson navigation, local search, keyboard interaction, and semantic page landmarks.
+
+## Project skills
+
+- Project skills live in `.agents/skills/<name>/`; `.claude/skills/` contains symlinks to them.
+- When a skill takes invocation arguments, begin its frontmatter `description` with the argument signature in inline code, without the skill name: `<required-arg>` for a required argument and `[optional-arg]` for an optional one, followed by ` — ` and the summary. Double-quote the value, because a plain YAML scalar cannot start with a backtick.
+- Repeat the same signature in the frontmatter `argument-hint` and at the start of `short_description` in `agents/openai.yaml`. Keep all three consistent with the skill's argument section.
+- A skill that takes structured input instead of positional arguments has no signature.

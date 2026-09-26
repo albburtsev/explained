@@ -1,6 +1,7 @@
 ---
 name: refine-course
-description: Refine all English Markdown for an existing Explained course selected by a required course slug or exact title. Use when the human author invokes `$refine-course` with that identifier to make the course overview and every listed lesson concise, coherent, clear to a B2 English reader, and technically rigorous without changing published identity or curriculum order.
+description: "`<course-slug-or-title>` — Refine all English Markdown for an existing Explained course selected by a required course slug or exact title. Use when the human author invokes `$refine-course` with that identifier to make the course overview and every listed lesson concise, coherent, clear to a B2 English reader, and technically rigorous without changing published identity or curriculum order."
+argument-hint: "<course-slug-or-title>"
 ---
 
 # Refine Course

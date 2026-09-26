@@ -1,6 +1,7 @@
 ---
 name: fix-lesson
-description: Fix one existing English Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson LESSON_SLUG FIX_INSTRUCTION` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, domain-rule, and validation constraints as `add-lesson`.
+description: "`<lesson-slug> <fix-instruction>` — Fix one existing English Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, domain-rule, and validation constraints as `add-lesson`."
+argument-hint: "<lesson-slug> <fix-instruction>"
 ---
 
 # Fix Lesson

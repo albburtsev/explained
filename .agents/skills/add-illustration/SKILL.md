@@ -1,6 +1,7 @@
 ---
 name: add-illustration
-description: Generate one raster illustration for an existing English Markdown lesson selected by a required lesson-slug argument, from a required description of what to draw, and embed it at the place in the lesson where it helps the reader most. Use when the human author invokes `$add-illustration LESSON_SLUG ILLUSTRATION_DESCRIPTION` or otherwise asks to add, draw, generate, or insert an illustration, picture, image, diagram, or figure into a lesson under `knowledge/lessons/`; require both inputs, choose the placement from the lesson context, enforce the domain rules in `AGENTS.md`, and validate the published content.
+description: "`<lesson-slug> <illustration-description>` — Generate one raster illustration for an existing English Markdown lesson selected by a required lesson-slug argument, from a required description of what to draw, and embed it at the place in the lesson where it helps the reader most. Use when the human author invokes `$add-illustration` or otherwise asks to add, draw, generate, or insert an illustration, picture, image, diagram, or figure into a lesson under `knowledge/lessons/`; require both inputs, choose the placement from the lesson context, enforce the domain rules in `AGENTS.md`, and validate the published content."
+argument-hint: "<lesson-slug> <illustration-description>"
 ---
 
 # Add Illustration
