@@ -11,12 +11,12 @@ const contentSchema = z.object({
 });
 
 const lessons = defineCollection({
-  loader: glob({ base: './knowledge/lessons', pattern: '**/*.md' }),
+  loader: glob({ base: './knowledge/lessons', pattern: ['**/*.md', '!**/*.ru.md'] }),
   schema: contentSchema,
 });
 
 const courses = defineCollection({
-  loader: glob({ base: './knowledge/courses', pattern: '*.md' }),
+  loader: glob({ base: './knowledge/courses', pattern: ['*.md', '!*.ru.md'] }),
   schema: contentSchema.extend({
     catalogOrder: z.number().int().positive(),
     lessons: z.array(reference('lessons')).min(1),

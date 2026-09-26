@@ -1,4 +1,4 @@
 interface:
   display_name: "Add Illustration"
   short_description: "<lesson-slug> <illustration-description> — Illustrate a lesson"
-  default_prompt: "Use $add-illustration <lesson-slug> <illustration description> to add a generated illustration to an existing lesson."
+  default_prompt: "Use $add-illustration <lesson-slug> <illustration description> to add a generated illustration in English and Russian to an existing lesson."

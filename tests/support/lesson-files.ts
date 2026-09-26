@@ -1,12 +1,12 @@
 import type { CourseLessonsRecord } from '../../src/lib/lesson-files';
 
-const courseSources: Record<string, string> = import.meta.glob<string>('../../knowledge/courses/*.md', {
+const courseSources: Record<string, string> = import.meta.glob<string>(['../../knowledge/courses/*.md', '!**/*.ru.md'], {
   query: '?raw',
   import: 'default',
   eager: true,
 });
 
-const lessonSources = import.meta.glob('../../knowledge/lessons/**/*.md');
+const lessonSources = import.meta.glob(['../../knowledge/lessons/**/*.md', '!**/*.ru.md']);
 
 function repositoryPath(path: string): string {
   return path.replace(/^\.\.\/\.\.\//, '');

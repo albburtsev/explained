@@ -6,11 +6,11 @@ Explained is a personal knowledge base made of structured Markdown and published
 
 A course is a short, focused introduction for someone new to a subject. It avoids unnecessary background and moves from essential theory to practice. A course has no separate prerequisites and contains one or more lessons in a fixed order. Lessons may be independent or may rely only on lessons that appear earlier in the course.
 
-A lesson is the smallest unit of a course. It covers exactly one topic, is designed to take between 1 and 30 minutes, and is stored in one Markdown file.
+A lesson is the smallest unit of a course. It covers exactly one topic, is designed to take between 1 and 30 minutes, and is stored in one Markdown source file with a Russian translation next to it.
 
 An optional installation guide may appear before the first lesson. It prepares the learner's environment, but is not a lesson and does not count toward the course's lesson total.
 
-When creating a course, the human author provides its title and ordered lesson outline in English. The course description and lesson content are generated automatically. All learner-facing course content—including titles, descriptions, lessons, installation guides, and cheatsheets—is written only in English. Installation guides and cheatsheets remain optional.
+When creating a course, the human author provides its title and ordered lesson outline in English or Russian. The course description, lesson content, and the other language are generated automatically. All learner-facing course content—including titles, descriptions, lessons, installation guides, and cheatsheets—exists in English and Russian. English is the source version, and Russian is its translation: faithful in meaning and written in a calm, natural literary style rather than translated word for word. Installation guides and cheatsheets remain optional.
 
 A cheatsheet is a compact, printable PDF placed after the final lesson. It summarizes useful commands, concepts, or keyboard shortcuts using a space-efficient layout. It is not a lesson, does not count toward the course's lesson total, and is generated only when the human author explicitly requests it.
 
@@ -44,12 +44,16 @@ The knowledge base lives outside the site implementation:
 ```text
 knowledge/
 ├── courses/
-│   └── openspec.md
+│   ├── openspec.md
+│   └── openspec.ru.md
 └── lessons/
     └── openspec/
         ├── 01-introduction.md
+        ├── 01-introduction.ru.md
         ├── 02-coding-agent-workflow.md
-        └── 03-cli-and-project-files.md
+        ├── 02-coding-agent-workflow.ru.md
+        ├── 03-cli-and-project-files.md
+        └── 03-cli-and-project-files.ru.md
 ```
 
 A course defines its ordered curriculum through typed lesson references:
@@ -81,11 +85,23 @@ tags: [openspec, spec-driven-development, macos]
 ---
 ```
 
-Every course, lesson, and future cheatsheet source declares a human-readable `slug` of at most 64 characters. A course uses one lowercase kebab-case segment. A lesson or cheatsheet starts with its parent course slug, followed by `/` and one or more lowercase kebab-case topic segments. Slugs are globally unique across all content types, and authoring workflows derive them automatically rather than requiring another human-provided field.
+Every English source has a Russian translation in a sibling `<name>.ru.md` file. The translation repeats the source `slug` and translates only `title`, `description`, and the Markdown body. Structural metadata such as `catalogOrder`, `lessons`, and `tags` lives only in the English source:
+
+```yaml
+---
+slug: openspec/introduction
+title: Знакомство с OpenSpec
+description: Узнайте, зачем нужен OpenSpec, установите его на macOS и инициализируйте проект.
+---
+```
+
+The translation mirrors the source section by section. Code, commands, output, identifiers, and URLs stay byte-identical, and every change is applied to both versions together. Content created before the bilingual rule may still lack a translation; the site currently publishes only the English sources.
+
+Every course, lesson, and future cheatsheet source declares a human-readable `slug` of at most 64 characters. A course uses one lowercase kebab-case segment. A lesson or cheatsheet starts with its parent course slug, followed by `/` and one or more lowercase kebab-case topic segments. Slugs are globally unique across all English sources, and authoring workflows derive them automatically rather than requiring another human-provided field.
 
 Lesson bodies are GitHub-flavored Markdown with one extra construct: a `:::details[Label]` block renders as a collapsible disclosure, closed by default, for an explanation a reader may skip. Its content stays in the search index, so a lesson must still read correctly with every such block closed.
 
-A lesson may embed raster illustrations stored next to it in `knowledge/lessons/<course-id>/<lesson-id>/` and referenced with a relative Markdown image such as `![Alt text](./<lesson-id>/<name>.png)`. Astro optimizes them with `sharp` at build time.
+A lesson may embed raster illustrations stored next to it in `knowledge/lessons/<course-id>/<lesson-id>/` and referenced with a relative Markdown image such as `![Alt text](./<lesson-id>/<name>.png)`. Each language has its own image with labels in that language: the Russian translation embeds `./<lesson-id>/<name>.ru.png`. Astro optimizes them with `sharp` at build time.
 
 Astro uses the explicit `slug` as the content entry ID, route, and typed reference key. To add content, create the lesson Markdown file and add its slug to the parent course's `lessons` list. Missing references fail the build. Treat a published slug as stable because changing it changes identity and may require coordinated reference and route updates.
 
