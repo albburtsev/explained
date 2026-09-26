@@ -32,7 +32,7 @@ This skill needs a native image generation capability in the host. If none is av
 
 1. Validate that the lesson-slug argument is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
 2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess.
-3. Read the whole lesson, its `.ru.md` translation, and the parent course in `knowledge/courses/`. If the translation does not exist, work only on the English version and report that the Russian image was skipped; translating the lesson is a job for `fix-lesson` or `refine-course`, not for this skill. Note any illustrations the lesson already has in `knowledge/lessons/<course-id>/<lesson-id>/`, so the new one matches their style and does not repeat them.
+3. Read the whole lesson, its `.ru.md` translation, and the parent course in `knowledge/courses/`. If the translation is missing, stop and report it; every lesson must have one. Note any illustrations the lesson already has in `knowledge/lessons/<course-id>/<lesson-id>/`, so the new one matches their style and does not repeat them.
 
 ## 3. Understand what to illustrate
 
@@ -101,7 +101,7 @@ Leave the surrounding prose unchanged in both files. The lesson must still read 
 ## 7. Verify the result
 
 1. Re-read both lesson files around the image and confirm the placement still reads naturally and matches between them.
-2. Confirm each image file exists at its referenced path and that no other file changed except the two lesson files and the two new images, or only the English pair when the translation is missing.
+2. Confirm each image file exists at its referenced path and that no other file changed except the two lesson files and the two new images.
 3. Run `pnpm run ci` when available; otherwise run the repository's content validation and build commands. Run `git diff --check` and inspect the final diff.
 4. Do not stage or commit changes unless explicitly requested.
 

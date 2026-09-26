@@ -38,7 +38,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - A translation mirrors its source: the same sections in the same order, the same `:::details` blocks, and the same illustrations in the same places. Keep code blocks, commands, output, identifiers, and URLs byte-identical, including comments inside code. Translate prose, headings, `:::details` labels, and alt text.
 - Apply every change to both language versions in the same change. Never edit only one of them.
 - The human author may write titles and instructions in English or Russian. Keep the author's exact wording in the language they used and generate the other language. When the author gives a Russian title, create the English title first, because the English title is the source for the slug.
-- Content created before this rule may still lack a Russian translation. A workflow that edits such a source must create the missing translation from the final English version.
+- Every English source has a Russian translation; validation fails when one is missing.
 
 ## Course authoring
 
@@ -78,7 +78,9 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Derive colors, typography roles, spacing, content widths, borders, and radii from a small semantic token set, and style every shared state from it, including focus, hover, code, search results, borders, and muted text.
 - Render the dark theme when no preference is saved. Provide a warm, paper-like light theme with equivalent semantic roles and readable contrast, not a cold or pure-white palette.
 - Keep the theme control minimal and keyboard-accessible in the header. It communicates the next available theme, applies the alternate theme immediately, persists an explicit choice for later visits, and falls back safely to the dark default when preference storage is unavailable.
-- Keep shared chrome minimal: the header holds the Explained home link, search, and theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
+- Keep shared chrome minimal: the header holds the Explained home link, search, the language switch, and the theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
+- Publish English at the existing routes and Russian under the `/ru/` prefix, with the same slugs. Every page, including search, uses the interface strings and content of its language.
+- Place the language switch directly before the theme control. It is a plain text link, `Ru` or `En`, that names the other language and opens the same page in that language.
 - Preserve existing behavior when changing the interface: routes, Markdown-rendered content, course ordering, curriculum links, previous and next lesson navigation, local search, keyboard interaction, and semantic page landmarks.
 
 ## Project skills

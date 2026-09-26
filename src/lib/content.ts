@@ -1,6 +1,7 @@
 import { unified } from 'unified';
 import remarkDirective from 'remark-directive';
 import remarkParse from 'remark-parse';
+import { defaultLocale, type Locale } from './i18n';
 
 const markdownParser = unified().use(remarkParse).use(remarkDirective);
 const spacedContainers = new Set([
@@ -34,10 +35,23 @@ export function normalizeBase(base: string): string {
   return segments ? `/${segments}` : '';
 }
 
-export function coursePath(base: string, courseId: string): string {
-  return `${normalizeBase(base)}/courses/${courseId}/`;
+export function homePath(base: string, locale: Locale = defaultLocale): string {
+  const prefix = locale === defaultLocale ? '' : `/${locale}`;
+  return `${normalizeBase(base)}${prefix}/`;
 }
 
-export function lessonPath(base: string, lessonId: string): string {
-  return `${normalizeBase(base)}/courses/${lessonId}/`;
+export function coursesPath(base: string, locale: Locale = defaultLocale): string {
+  return `${homePath(base, locale)}courses/`;
+}
+
+export function coursePath(base: string, courseId: string, locale: Locale = defaultLocale): string {
+  return `${coursesPath(base, locale)}${courseId}/`;
+}
+
+export function lessonPath(base: string, lessonId: string, locale: Locale = defaultLocale): string {
+  return `${coursesPath(base, locale)}${lessonId}/`;
+}
+
+export function searchIndexPath(base: string, locale: Locale = defaultLocale): string {
+  return `${homePath(base, locale)}search-index.json`;
 }

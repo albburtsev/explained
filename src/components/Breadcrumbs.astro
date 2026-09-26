@@ -6,12 +6,13 @@ interface Item {
 
 interface Props {
   items: Item[];
+  label: string;
 }
 
-const { items } = Astro.props;
+const { items, label } = Astro.props;
 ---
 
-<nav class="breadcrumbs" aria-label="Breadcrumb">
+<nav class="breadcrumbs" aria-label={label}>
   <ol>
     {items.map((item, index) => (
       <li>

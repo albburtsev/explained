@@ -108,7 +108,7 @@ Do not add `tags` or any other field; structural metadata lives only in the Engl
 
 Add `<course-slug>/<lesson-id>`—the new lesson's exact explicit slug—to the parent course's `lessons` array at the exact author-provided position. Preserve all other references and their order. Renumber later lesson files and their `.ru.md` translations with `git mv` to match their new positions.
 
-Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the domain rules permit the edit. Apply the same edit to the course's `.ru.md` translation; if it does not exist yet, create it from the final English course file with only `slug`, `title`, and `description` in its frontmatter. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
+Change other course overview prose only when the new curriculum would otherwise make it inaccurate and the domain rules permit the edit. Apply the same edit to the course's `.ru.md` translation. Keep such edits minimal; never add a prerequisites section, installation guide, or cheatsheet as part of this workflow.
 
 ## 8. Verify the result
 

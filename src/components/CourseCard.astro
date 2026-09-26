@@ -1,22 +1,25 @@
 ---
-import type { CollectionEntry } from 'astro:content';
 import { coursePath } from '../lib/content';
+import { t, type Locale } from '../lib/i18n';
+import type { LocalizedCourse } from '../lib/localized-content';
 
 interface Props {
-  course: CollectionEntry<'courses'>;
+  course: LocalizedCourse;
+  locale: Locale;
 }
 
-const { course } = Astro.props;
-const href = coursePath(import.meta.env.BASE_URL, course.id);
+const { course, locale } = Astro.props;
+const messages = t(locale);
+const href = coursePath(import.meta.env.BASE_URL, course.id, locale);
 ---
 
 <article class="course-entry">
   <div class="course-entry-copy">
-    <h2><a href={href}>{course.data.title}</a></h2>
-    <p>{course.data.description}</p>
+    <h2><a href={href}>{course.title}</a></h2>
+    <p>{course.description}</p>
   </div>
-  <div class="course-entry-meta">{course.data.lessons.length} {course.data.lessons.length === 1 ? 'lesson' : 'lessons'}</div>
-  <div class="tag-list" aria-label="Topics">
-    {course.data.tags.map((tag) => <span>{tag}</span>)}
+  <div class="course-entry-meta">{messages.lessonCount(course.lessonCount)}</div>
+  <div class="tag-list" aria-label={messages.topics}>
+    {course.tags.map((tag) => <span>{tag}</span>)}
   </div>
 </article>

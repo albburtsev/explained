@@ -95,7 +95,7 @@ description: Узнайте, зачем нужен OpenSpec, установит�
 ---
 ```
 
-The translation mirrors the source section by section. Code, commands, output, identifiers, and URLs stay byte-identical, and every change is applied to both versions together. Content created before the bilingual rule may still lack a translation; the site currently publishes only the English sources.
+The translation mirrors the source section by section. Code, commands, output, identifiers, and URLs stay byte-identical, and every change is applied to both versions together. Every English source must have a translation. English pages keep their routes, and Russian pages live under `/ru/`, for example `/explained/ru/courses/openspec/introduction/`. The header's `Ru`/`En` link opens the same page in the other language.
 
 Every course, lesson, and future cheatsheet source declares a human-readable `slug` of at most 64 characters. A course uses one lowercase kebab-case segment. A lesson or cheatsheet starts with its parent course slug, followed by `/` and one or more lowercase kebab-case topic segments. Slugs are globally unique across all English sources, and authoring workflows derive them automatically rather than requiring another human-provided field.
 

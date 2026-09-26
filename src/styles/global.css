@@ -133,7 +133,7 @@ button { color: inherit; }
 
 .header-inner {
   display: grid;
-  grid-template-areas: "brand search theme";
+  grid-template-areas: "brand search controls";
   grid-template-columns: 1fr minmax(12rem, 18rem) auto;
   align-items: center;
   gap: var(--space-6);
@@ -163,9 +163,16 @@ button { color: inherit; }
   font-weight: 700;
 }
 
-.theme-toggle {
-  grid-area: theme;
+.header-controls {
+  grid-area: controls;
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.locale-toggle,
+.theme-toggle {
   display: inline-flex;
   min-height: var(--control-height);
   align-items: center;
@@ -179,6 +186,7 @@ button { color: inherit; }
   cursor: pointer;
 }
 
+.locale-toggle:hover,
 .theme-toggle:hover { color: var(--color-accent-strong); }
 
 .search {
@@ -747,7 +755,7 @@ button { color: inherit; }
 
 @media (max-width: 47.5rem) {
   .header-inner {
-    grid-template-areas: "brand search theme";
+    grid-template-areas: "brand search controls";
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: var(--space-3);
   }
