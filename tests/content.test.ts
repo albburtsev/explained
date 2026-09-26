@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   coursePath,
-  coursesPath,
   homePath,
   lessonPath,
   markdownToPlainText,
@@ -33,7 +32,6 @@ describe('content helpers', () => {
   it('prefixes routes of the non-default locale', () => {
     expect(homePath('/explained/', 'en')).toBe('/explained/');
     expect(homePath('/explained/', 'ru')).toBe('/explained/ru/');
-    expect(coursesPath('/explained/', 'ru')).toBe('/explained/ru/courses/');
     expect(coursePath('/explained/', 'openspec', 'ru')).toBe('/explained/ru/courses/openspec/');
     expect(lessonPath('/explained/', 'openspec/introduction', 'ru')).toBe(
       '/explained/ru/courses/openspec/introduction/',

@@ -2,7 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Breadcrumbs from '../../../../components/Breadcrumbs.astro';
 import BaseLayout from '../../../../layouts/BaseLayout.astro';
-import { coursePath, coursesPath, homePath, lessonPath } from '../../../../lib/content';
+import { coursePath, homePath, lessonPath } from '../../../../lib/content';
 import { locales, localeParam, otherLocale, t, type Locale } from '../../../../lib/i18n';
 import { getCourseLessons, localizeCourse, type LocalizedCourse } from '../../../../lib/localized-content';
 
@@ -31,7 +31,6 @@ const alternateUrl = coursePath(base, course.id, otherLocale(locale));
   <div class="content-page">
     <Breadcrumbs label={messages.breadcrumb} items={[
       { label: messages.home, href: homePath(base, locale) },
-      { label: messages.courses, href: coursesPath(base, locale) },
       { label: course.title },
     ]} />
     <div class="page-shell">

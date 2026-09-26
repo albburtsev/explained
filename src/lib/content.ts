@@ -40,7 +40,7 @@ export function homePath(base: string, locale: Locale = defaultLocale): string {
   return `${normalizeBase(base)}${prefix}/`;
 }
 
-export function coursesPath(base: string, locale: Locale = defaultLocale): string {
+function coursesPath(base: string, locale: Locale = defaultLocale): string {
   return `${homePath(base, locale)}courses/`;
 }
 
