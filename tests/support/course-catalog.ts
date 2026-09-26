@@ -1,5 +1,5 @@
 const courseSources: Record<string, string> = import.meta.glob<string>(
-  '../../knowledge/courses/*.md',
+  ['../../knowledge/courses/*.md', '!**/*.ru.md'],
   {
     query: '?raw',
     import: 'default',

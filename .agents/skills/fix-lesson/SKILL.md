@@ -1,12 +1,12 @@
 ---
 name: fix-lesson
-description: "`<lesson-slug> <fix-instruction>` — Fix one existing English Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, domain-rule, and validation constraints as `add-lesson`."
+description: "`<lesson-slug> <fix-instruction>` — Fix one existing bilingual English and Russian Markdown lesson selected by a required lesson-slug argument according to a required correction instruction. Use when the human author invokes `$fix-lesson` to correct, revise, clarify, update, or repair a lesson under `knowledge/lessons/`; require both inputs before starting, preserve published identity and curriculum order unless an authorized consistency change is necessary, and enforce the same content, research, domain-rule, and validation constraints as `add-lesson`."
 argument-hint: "<lesson-slug> <fix-instruction>"
 ---
 
 # Fix Lesson
 
-Modify exactly one existing lesson as requested. Make the smallest complete correction and only the consistency edits that the correction requires.
+Modify exactly one existing lesson as requested, in its English source and its Russian translation. Make the smallest complete correction and only the consistency edits that the correction requires.
 
 ## Required arguments
 
@@ -18,7 +18,7 @@ $fix-lesson <lesson-slug> <fix instruction>
 
 Do not infer the lesson slug from conversation context, a lesson title, a course title, a directory name, or a file name. Do not accept any of those values as a substitute. If either argument is missing, stop and ask the author to invoke the skill with both the lesson slug and the fix instruction before inspecting or editing course content.
 
-If the instruction remains materially ambiguous after loading the target and its rules, ask one concise clarifying question. Do not ask the author for implementation details that can be derived safely from the repository or authoritative sources.
+The fix instruction may be written in English or Russian. If the instruction remains materially ambiguous after loading the target and its rules, ask one concise clarifying question. Do not ask the author for implementation details that can be derived safely from the repository or authoritative sources.
 
 ## 1. Load the current rules
 
@@ -27,7 +27,7 @@ If the instruction remains materially ambiguous after loading the target and its
 3. Inspect `src/content.config.ts` and repository validation commands.
 4. Preserve unrelated and pre-existing changes in the worktree.
 
-Do not edit the domain rules or `add-lesson` to make a conflicting correction permissible. Creation-only instructions from `add-lesson`—including collecting a new title and position, deriving a new lesson ID, creating a file, and registering a new curriculum entry—do not apply. When its creation workflow conflicts with this editing workflow, follow this skill.
+Do not edit the domain rules or `add-lesson` to make a conflicting correction permissible. Creation-only instructions from `add-lesson`—including collecting a new title and position, deriving a new lesson ID, creating a lesson source file, and registering a new curriculum entry—do not apply. Its translation rules do apply. When its creation workflow conflicts with this editing workflow, follow this skill.
 
 If the requested correction would violate a fixed count, fixed order, prescribed outline, one-topic boundary, 30-minute limit, backward-dependency rule, or another requirement, stop and explain the conflict.
 
@@ -38,12 +38,12 @@ Before editing:
 1. Validate that the required lesson-slug argument is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
 2. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
 3. Resolve exactly one parent `knowledge/courses/<course-id>.md` whose `lessons` array contains the exact slug. Confirm that the slug begins with that course's frontmatter slug followed by `/`.
-4. Read the target lesson, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
+4. Read the target lesson and its `.ru.md` translation when present, the parent course, and every lesson in the course's ordered curriculum. Identify the target's position and distinguish earlier dependencies from later consumers.
 5. Check the requested correction against every applicable rule in `AGENTS.md` and against neighboring lessons to prevent duplication, gaps, and forward dependencies.
 
 Pause when an invalid identity, missing parent reference, duplicate topic, ambiguous requested outcome, or conflict with the domain rules requires a material author choice.
 
-Preserve the existing lesson slug, source path, title, and topic unless the fix instruction explicitly requires changing the relevant value. Always preserve the curriculum position. Do not turn a correction into a new lesson, add a second topic, move the lesson, create or delete lesson files, or alter unrelated curriculum entries. If the requested material belongs in a separate lesson, stop and recommend using `add-lesson` instead.
+Preserve the existing lesson slug, source path, title, and topic unless the fix instruction explicitly requires changing the relevant value. Always preserve the curriculum position. Do not turn a correction into a new lesson, add a second topic, move the lesson, create or delete lesson files other than a missing translation, or alter unrelated curriculum entries. If the requested material belongs in a separate lesson, stop and recommend using `add-lesson` instead.
 
 ## 3. Research the correction
 
@@ -55,7 +55,9 @@ Keep research proportional for stable, conceptual topics. Never fabricate a comm
 
 Apply the requested correction completely while preserving unaffected wording and structure. Follow these rules:
 
-- Write all learner-facing text, including the title, description, headings, examples, and image alt text, only in English.
+- Apply the correction to the English source first, then carry the same change into the Russian translation. Never change only one language.
+- Keep the source in English and the translation in Russian, and follow the `Languages and translations` rules in `AGENTS.md` and the translation step of `add-lesson`.
+- If the lesson has no `.ru.md` translation yet, create it from the corrected English source with the same `<NN>`, the same slug, and only `slug`, `title`, and `description` in its frontmatter.
 - Keep the lesson focused on exactly one topic and realistically completable within 1–30 minutes.
 - Address a beginner without a separate prerequisites section.
 - Include only the theory needed to begin practical work; move quickly to a concrete explanation, example, or small learner action when the topic permits it.
@@ -65,34 +67,35 @@ Apply the requested correction completely while preserving unaffected wording an
 - Use valid Markdown, fenced-code language identifiers, accurate examples, and concise headings. Do not repeat the title as an H1 because the page layout renders it from frontmatter.
 - Do not add an installation guide, prerequisites section, or cheatsheet. Include setup only when the requested correction makes it necessary to the approved topic and the domain rules permit it.
 
-Change the parent course or another lesson only when the requested correction would otherwise leave a factual inconsistency or broken reference. Keep every such edit minimal and within the author's instruction.
+Change the parent course or another lesson only when the requested correction would otherwise leave a factual inconsistency or broken reference. Apply such an edit to both language versions of that file, and keep it minimal and within the author's instruction.
 
 ## 5. Preserve content identity
 
-Treat the published lesson slug as stable. When the fix instruction does not explicitly require an identity change, leave the slug and every course reference unchanged even if the title changes.
+Treat the published lesson slug as stable. When the fix instruction does not explicitly require an identity change, leave the slug and every course reference unchanged even if the title changes. A title change applies to both languages.
 
 When an intentional identity change is explicitly required:
 
 1. Derive the replacement slug automatically from the corrected title and course context; do not require the author to supply it.
 2. Keep the slug within 64 characters, begin it with the parent course slug, and use lowercase kebab-case segments separated by single `/` characters.
 3. Confirm global uniqueness across course, lesson, and cheatsheet frontmatter.
-4. Update the parent course reference and every other affected reference or route together without changing curriculum order.
+4. Update the translation's slug, the parent course reference, and every other affected reference or route together without changing curriculum order. When the lesson ID changes, rename the source and its translation together with `git mv`, keeping `<NN>`.
 
 Pause only if resolving a collision or choosing the intended identity requires a material author decision.
 
 ## 6. Verify the result
 
-Re-read the corrected lesson, parent course, all course lessons affected by its dependencies, the applicable domain rules, and the relevant `add-lesson` constraints. Confirm:
+Re-read the corrected lesson and its translation, the parent course, all course lessons affected by its dependencies, the applicable domain rules, and the relevant `add-lesson` constraints. Confirm:
 
 - The requested correction is complete and no unrelated content changed.
 - The lesson's explicit slug still resolves uniquely, begins with the parent course slug, and exactly matches its course reference.
 - Any intentional identity change updated every affected reference and route without changing curriculum order.
 - Frontmatter matches `src/content.config.ts`; the description and tags remain accurate.
-- The lesson is English-only, atomic, beginner-focused, and realistically completable within 30 minutes.
+- The lesson is atomic, beginner-focused, and realistically completable within 30 minutes.
+- The English source and the Russian translation carry the same correction. The translation has the same `<NN>` and slug, only `slug`, `title`, and `description` in its frontmatter, the same structure, and byte-identical code.
 - Every dependency points backward in the curriculum.
 - Course-specific requirements and verified facts are satisfied.
-- No lesson, installation guide, prerequisites section, or cheatsheet was added or removed.
+- No lesson, installation guide, prerequisites section, or cheatsheet was added or removed; the only allowed new file is a missing translation.
 
 Run `pnpm run ci` when available; otherwise run the repository's relevant content validation and build commands. Also run `git diff --check` and inspect the final diff. Do not stage or commit changes unless explicitly requested.
 
-Report the corrected lesson path, its explicit slug, a concise summary of the fix, every other file changed for consistency, validation results, and any verification that could not be completed.
+Report the corrected lesson and translation paths, whether the translation was created, its explicit slug, a concise summary of the fix, every other file changed for consistency, validation results, and any verification that could not be completed.

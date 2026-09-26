@@ -1,4 +1,4 @@
 interface:
   display_name: "Refine Course"
   short_description: "<course-slug-or-title> — Make a course clearer and coherent"
-  default_prompt: "Use $refine-course <course-slug-or-title> to improve every course and lesson Markdown file."
+  default_prompt: "Use $refine-course <course-slug-or-title> to improve every course and lesson Markdown file in English and Russian."

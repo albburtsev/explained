@@ -1,17 +1,17 @@
 import type { ContentSlugRecord, ContentType } from '../../src/lib/content-slugs';
 
 const markdownSources: Record<string, string> = {
-  ...import.meta.glob<string>('../../knowledge/courses/**/*.md', {
+  ...import.meta.glob<string>(['../../knowledge/courses/**/*.md', '!**/*.ru.md'], {
     query: '?raw',
     import: 'default',
     eager: true,
   }),
-  ...import.meta.glob<string>('../../knowledge/lessons/**/*.md', {
+  ...import.meta.glob<string>(['../../knowledge/lessons/**/*.md', '!**/*.ru.md'], {
     query: '?raw',
     import: 'default',
     eager: true,
   }),
-  ...import.meta.glob<string>('../../knowledge/cheatsheets/**/*.md', {
+  ...import.meta.glob<string>(['../../knowledge/cheatsheets/**/*.md', '!**/*.ru.md'], {
     query: '?raw',
     import: 'default',
     eager: true,

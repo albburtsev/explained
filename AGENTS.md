@@ -10,7 +10,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - It contains one or more lessons in a fixed order.
 - A lesson may be independent or may rely only on lessons that appear earlier in the course.
 - An installation guide is optional. When present, it appears before the first lesson and is not counted as a lesson.
-- All learner-facing course content is written only in English.
+- All learner-facing course content exists in English and Russian. English is the source version; Russian is its translation, faithful in meaning and natural in style. See `Languages and translations`.
 
 ## Lesson model
 
@@ -18,6 +18,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - It covers exactly one topic.
 - It is designed to take between 1 and 30 minutes.
 - It is represented by one Markdown file, `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md`, where `<NN>` is its two-digit position in the course `lessons` list. The number only sorts files and is not part of the slug; renumber the files when the order changes.
+- Its Russian translation is a sibling file with the same name and a `.ru.md` extension.
 
 ## Content identity
 
@@ -25,12 +26,23 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - A slug contains 1 to 64 characters arranged as lowercase kebab-case segments separated by single `/` characters.
 - A course slug has one segment. A lesson or cheatsheet slug starts with its parent course slug followed by `/` and recognizable topic context.
 - Slugs are globally unique across courses, lessons, and cheatsheets.
-- Derive slugs automatically from the entity title and context. Do not require the human author to provide them as additional input.
+- Derive slugs automatically from the entity's English title and context. Do not require the human author to provide them as additional input.
+- The English source document declares the slug. Its Russian translation repeats the same slug and is not a separate entity, so it does not take part in the uniqueness check.
 - Astro uses the frontmatter slug as the entity's entry ID, route, and reference key. Treat a published slug as stable; if it changes intentionally, update every affected reference and route together.
+
+## Languages and translations
+
+- Store the English source as `<name>.md` and its Russian translation as `<name>.ru.md` in the same directory: `knowledge/courses/<course-id>.ru.md` for a course and `knowledge/lessons/<course-id>/<NN>-<lesson-id>.ru.md` for a lesson. Installation guides and cheatsheets follow the same rule.
+- A lesson translation has the same `<NN>` as its source. When lesson files are renumbered, rename each translation together with its source.
+- Translation frontmatter contains only `slug`, `title`, and `description`. Structural metadata, such as `catalogOrder`, `lessons`, and `tags`, lives only in the English source.
+- A translation mirrors its source: the same sections in the same order, the same `:::details` blocks, and the same illustrations in the same places. Keep code blocks, commands, output, identifiers, and URLs byte-identical, including comments inside code. Translate prose, headings, `:::details` labels, and alt text.
+- Apply every change to both language versions in the same change. Never edit only one of them.
+- The human author may write titles and instructions in English or Russian. Keep the author's exact wording in the language they used and generate the other language. When the author gives a Russian title, create the English title first, because the English title is the source for the slug.
+- Content created before this rule may still lack a Russian translation. A workflow that edits such a source must create the missing translation from the final English version.
 
 ## Course authoring
 
-- Require the human author to provide the course title and ordered lesson outline in English.
+- Require the human author to provide the course title and ordered lesson outline in English or Russian.
 - Generate the short course description and lesson content automatically.
 - Every course source declares a positive integer `catalogOrder` that is unique across courses and controls descending catalogue position.
 - Treat `catalogOrder` as sparse, non-learner-facing metadata: leave numeric gaps where practical, and do not let it affect slugs, routes, or lesson order.
@@ -43,10 +55,11 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Do not provide commands or procedures to install, upgrade, select, or verify the version of a dependency. Commands may still install or verify the course's primary tool and may initialize, configure, or run the learning project, including project generators that manage their own packages.
 - Do not generate a cheatsheet during routine course creation. Generate one only after an explicit request from the human author.
 - Never add a `:::details[Label]` collapsible disclosure by default when generating or revising a lesson. Add one only after an explicit request from the human author.
-- Never add an illustration by default when generating or revising a lesson. Add one only after an explicit request from the human author. Store a lesson illustration as a raster file in `knowledge/lessons/<course-id>/<lesson-id>/`, embed it with a relative Markdown image, and give it English alt text; any text inside the image is English too.
+- Never add an illustration by default when generating or revising a lesson. Add one only after an explicit request from the human author. Store a lesson illustration as a raster file in `knowledge/lessons/<course-id>/<lesson-id>/` and embed it with a relative Markdown image. Each language has its own image: `<name>.<ext>` for English and `<name>.ru.<ext>` for Russian. The alt text and any text inside the image use the language of the lesson version that embeds it.
 - Write learner-facing prose for a reader with B2 English: choose the common word over the rare one, carry one idea per sentence, and prefer several short sentences to a long chain of clauses.
-- Keep the subject's own vocabulary intact. Simplify the wording around a domain term instead of replacing the term.
-- Wrap an important domain term in Markdown inline code at the point where it is defined or first explained. Leave later routine mentions unformatted unless they are a literal command, path, filename, or identifier.
+- The B2 rule applies only to English. Write Russian in a calm, literary, natural style, so the text reads as if it were written in Russian rather than translated mechanically. Rephrase and restructure sentences freely while keeping the meaning, facts, and structure of the source. Use complex words and terms when the thought needs them.
+- Keep the subject's own vocabulary intact. Simplify the wording around a domain term instead of replacing the term. In Russian, professional terminology may stay in English; keep each term in one form throughout the course.
+- In both languages, wrap an important domain term in Markdown inline code at the point where it is defined or first explained. Leave later routine mentions unformatted unless they are a literal command, path, filename, or identifier.
 
 ## Cheatsheet model
 
