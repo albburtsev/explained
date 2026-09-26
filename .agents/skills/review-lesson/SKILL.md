@@ -24,7 +24,7 @@ An omitted focus means a complete baseline visual review. A supplied focus adds 
 
 1. Locate the repository root and read every applicable `AGENTS.md`.
 2. Validate that the lesson slug is 1–64 characters composed of at least two lowercase kebab-case segments separated by single `/` characters.
-3. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
+3. Search lesson frontmatter and resolve the exact slug to exactly one `knowledge/lessons/<course-id>/<NN>-<lesson-id>.md` file. If it is invalid, absent, or does not resolve exactly once, stop and request a valid lesson slug; never guess or offer a title or file path as an equivalent.
 4. Resolve exactly one parent course whose `lessons` array contains the exact slug. Read the lesson source and parent course so the review knows which headings, code blocks, tables, images, diagrams, and navigation labels should render.
 5. Inspect `package.json`, `astro.config.*`, the lesson route, and its path helpers. Derive the URL from the actual development origin, configured base path, and lesson slug. In the current project this is normally `<origin>/explained/courses/<lesson-slug>/`; verify it instead of assuming it.
 6. Inspect the current worktree and preserve every existing change. Do not edit, format, stage, or commit files during this review.
