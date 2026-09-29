@@ -16,14 +16,7 @@ description: Что такое Apache Iceberg как открытый табли
 
 Этот список — дерево файлов метаданных с указателем на вершине:
 
-```text
-catalog
-  `- table name -> current metadata file
-                     |  schema, partition spec, properties, snapshot history
-                     `- snapshot -> manifest list
-                                      |- manifest -> data files + statistics
-                                      `- manifest -> data files + statistics
-```
+![Каталог связывает имя таблицы с текущим файлом метаданных. Снимок ведёт к списку манифестов, а те — к файлам данных и статистике.](./iceberg/iceberg-metadata-tree.png)
 
 У каждого уровня своя роль:
 

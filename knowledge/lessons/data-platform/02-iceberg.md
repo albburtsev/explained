@@ -22,14 +22,7 @@ The design decision everything follows from is one sentence in the spec: this ta
 
 That list is a tree of metadata files, with a pointer at the top:
 
-```text
-catalog
-  `- table name -> current metadata file
-                     |  schema, partition spec, properties, snapshot history
-                     `- snapshot -> manifest list
-                                      |- manifest -> data files + statistics
-                                      `- manifest -> data files + statistics
-```
+![The catalog points from a table name to the current metadata file. A snapshot leads to a manifest list, then to manifests with data files and statistics.](./iceberg/iceberg-metadata-tree.png)
 
 Each level has a job:
 
