@@ -26,11 +26,119 @@ That list is a tree of metadata files, with a pointer at the top:
 
 Each level has a job:
 
+- A `catalog` is the entry point: it maps a table name such as `sales.orders` to that table's current metadata file.
 - A `metadata file` is a JSON document holding the table's schema, partition configuration, properties, and its snapshots. Every change to the table writes a *new* metadata file; metadata files are never edited.
 - A `snapshot` is the state of the table at one moment — the complete set of data files it contained then.
 - A `manifest list` belongs to one snapshot and names the manifests that make it up, with per-manifest partition ranges and file counts, so an engine can skip manifests that cannot match a query.
 - A `manifest` lists data files with their partition values and column-level statistics such as value ranges and null counts. Manifests are reused across snapshots, so a small commit does not rewrite the whole inventory.
-- A `catalog` holds the last piece: the pointer from a table name such as `sales.orders` to that table's current metadata file.
+- A `Parquet file` holds the rows at the end of this example. It groups values by column; the manifest records its location and summary statistics.
+
+### What each part looks like
+
+These short examples follow one table, `sales.orders`, from its name to two rows. They show only the fields needed to follow the links; real files hold more information.
+
+:::details[Catalog: find the table]
+
+A catalog is a way to look up tables, not another Iceberg table file. This is a conceptual lookup from a table name to the current metadata file:
+
+```text
+sales.orders
+  -> s3://lake/orders/metadata/v2.metadata.json
+```
+
+The catalog changes this pointer when a new table version is committed. See the [Iceberg spec: metastore tables](https://iceberg.apache.org/spec/#metastore-tables).
+
+:::
+
+:::details[Metadata file: read the schema and current snapshot]
+
+The file `v2.metadata.json` is JSON. Selected fields might look like this:
+
+```json
+{
+  "format-version": 2,
+  "current-snapshot-id": 101,
+  "schemas": [{
+    "schema-id": 0,
+    "type": "struct",
+    "fields": [
+      {"id": 1, "name": "order_id", "required": true, "type": "long"},
+      {"id": 2, "name": "amount_cents", "required": true, "type": "long"}
+    ]
+  }]
+}
+```
+
+The schema names the columns; `current-snapshot-id` selects snapshot 101. See the [Iceberg spec: table metadata](https://iceberg.apache.org/spec/#table-metadata).
+
+:::
+
+:::details[Snapshot: point to a manifest list]
+
+A snapshot is a record inside the metadata JSON, not a separate file. Here is an excerpt from its `snapshots` array:
+
+```json
+{
+  "snapshot-id": 101,
+  "manifest-list": "s3://lake/orders/metadata/snap-101.avro",
+  "summary": {"operation": "append"}
+}
+```
+
+This snapshot describes an append and points to its manifest list. See the [Iceberg spec: snapshots](https://iceberg.apache.org/spec/#snapshots).
+
+:::
+
+:::details[Manifest list: find the manifest]
+
+The manifest list is a binary file. One of its records might look like this after decoding and showing only selected fields:
+
+```json
+{
+  "manifest_path": "s3://lake/orders/metadata/m0.avro",
+  "added_files_count": 1
+}
+```
+
+The record points to a manifest with one newly added file. See the [Iceberg spec: manifest lists](https://iceberg.apache.org/spec/#manifest-lists).
+
+:::
+
+:::details[Manifest: find the data file]
+
+A manifest is a binary Avro file. One entry might look like this after decoding and showing only selected fields:
+
+```json
+{
+  "status": 1,
+  "data_file": {
+    "file_path": "s3://lake/orders/data/part-0001.parquet",
+    "file_format": "parquet",
+    "record_count": 2
+  }
+}
+```
+
+`status: 1` means the file was added. The entry points to a Parquet file with two rows. See the [Iceberg spec: manifests](https://iceberg.apache.org/spec/#manifests).
+
+:::
+
+:::details[Parquet file: read the rows]
+
+The Parquet file is binary too. This decoded sketch shows one row group with two column chunks, followed by a footer:
+
+```text
+row group 1
+  order_id chunk:     [1, 2]
+  amount_cents chunk: [2000, 3500]
+footer
+  rows: 2
+  schema: order_id, amount_cents
+```
+
+The first value in each column belongs to the first row. The footer tells a reader where to find the column chunks. See the [Parquet file format](https://parquet.apache.org/docs/file-format/).
+
+:::
 
 Statistics at the manifest-list and manifest levels are why this is fast. An engine narrows a scan by reading metadata, not by listing storage. The spec states the goal directly: plan a scan with O(1) remote calls rather than O(n) calls growing with the number of partitions or files.
 
