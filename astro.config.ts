@@ -5,6 +5,7 @@ import rehypeSlug from 'rehype-slug';
 import remarkDirective from 'remark-directive';
 import remarkGfm from 'remark-gfm';
 
+import rehypeResponsiveTables from './src/lib/rehype-responsive-tables';
 import remarkDetails from './src/lib/remark-details';
 
 export default defineConfig({
@@ -14,7 +15,7 @@ export default defineConfig({
   markdown: {
     processor: markdownRemark({
       remarkPlugins: [remarkGfm, remarkDirective, remarkDetails],
-      rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }]],
+      rehypePlugins: [rehypeResponsiveTables, rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'wrap' }]],
     }),
     shikiConfig: {
       themes: { light: 'github-light-default', dark: 'github-dark-default' },

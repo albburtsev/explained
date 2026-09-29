@@ -711,6 +711,7 @@ button { color: inherit; }
   vertical-align: baseline;
   border-block-end: 1px solid var(--color-border-subtle);
   border-inline-end: 1px solid var(--color-border-subtle);
+  hyphens: manual;
 }
 
 .prose :is(th, td):first-child { padding-inline-start: 0; }
@@ -864,6 +865,56 @@ button { color: inherit; }
     text-align: left;
   }
 
+  /* Tables with three or more columns stack into rows labelled by column header. */
+  .prose table.table-stack {
+    display: block;
+    width: auto;
+    overflow: visible;
+    font-size: inherit;
+  }
+
+  .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .table-stack :is(tbody, tr, td) { display: block; }
+
+  .table-stack tr {
+    padding-block: var(--space-4);
+    border-block-end: 1px solid var(--color-border-subtle);
+  }
+
+  .table-stack tr:first-child { padding-block-start: 0; }
+  .table-stack tr:last-child { border-block-end: 0; }
+
+  .prose .table-stack td {
+    padding: 0;
+    border: 0;
+  }
+
+  .prose .table-stack td + td { margin-block-start: var(--space-3); }
+
+  .table-stack td:first-child { font-weight: 700; }
+
+  .table-stack td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--color-muted);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .prose .table-stack :is(th, td) code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
