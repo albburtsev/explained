@@ -9,6 +9,7 @@
   --color-accent: #8cc3d6;
   --color-accent-strong: #b6dce9;
   --color-accent-soft: #1f3038;
+  --color-reading-highlight: #3b3526;
   --color-focus: #b6dce9;
   --color-code: #141412;
   --color-code-control: #a39f94;
@@ -59,6 +60,7 @@
   --color-accent: #1d6480;
   --color-accent-strong: #144e66;
   --color-accent-soft: #dae7eb;
+  --color-reading-highlight: #f1e1b4;
   --color-focus: #1a5a74;
   --color-code: #fdfaf3;
   --color-code-control: #6b6358;
@@ -917,7 +919,25 @@ button { color: inherit; }
   }
 }
 
+/* Marks the block the reader was on after the language switch. */
+.reading-anchor {
+  border-radius: var(--radius-sm);
+  animation: reading-anchor 1.6s ease-out;
+}
+
+@keyframes reading-anchor {
+  from, 40% {
+    background-color: var(--color-reading-highlight);
+    box-shadow: 0 0 0 .25em var(--color-reading-highlight);
+  }
+  to {
+    background-color: transparent;
+    box-shadow: 0 0 0 .25em transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; }
+  .reading-anchor { animation-timing-function: step-end; }
 }

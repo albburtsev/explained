@@ -32,19 +32,23 @@ const messages = t(locale);
 </div>
 
 <script>
+  import { navigate } from 'astro:transitions/client';
   import { documentLocale, t } from '../lib/i18n';
   import { createSearch, type SearchDocument } from '../lib/search';
 
-  const messages = t(documentLocale());
+  type SearchEngine = ReturnType<typeof createSearch>;
 
-  const root = document.querySelector<HTMLElement>('[data-search-root]');
-  const input = root?.querySelector<HTMLInputElement>('[data-search-input]');
-  const panel = root?.querySelector<HTMLElement>('[data-search-panel]');
-  const status = root?.querySelector<HTMLElement>('[data-search-status]');
-  const results = root?.querySelector<HTMLUListElement>('[data-search-results]');
+  // Page swaps replace the header, so these point at the current page's elements.
+  let messages = t(documentLocale());
+  let root: HTMLElement | null = null;
+  let input: HTMLInputElement | null | undefined;
+  let panel: HTMLElement | null | undefined;
+  let status: HTMLElement | null | undefined;
+  let results: HTMLUListElement | null | undefined;
 
-  let engine: ReturnType<typeof createSearch> | undefined;
-  let loading: Promise<void> | undefined;
+  // Each locale has its own index; keep loaded ones for switching back.
+  const engines = new Map<string, Promise<SearchEngine | undefined>>();
+  let engine: SearchEngine | undefined;
   let selectedIndex = -1;
   let currentDocuments: SearchDocument[] = [];
 
@@ -104,24 +108,31 @@ const messages = t(locale);
     }
   };
 
-  const loadIndex = () => {
-    if (engine) return Promise.resolve();
-    if (loading) return loading;
-    if (status) status.textContent = messages.searchLoading;
+  const loadIndex = async () => {
+    if (engine) return;
     const indexUrl = root?.dataset.searchIndex;
-    if (!indexUrl) return Promise.resolve();
-    loading = fetch(indexUrl)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
-        return response.json() as Promise<SearchDocument[]>;
-      })
-      .then((documents) => {
-        engine = createSearch(documents);
-      })
-      .catch(() => {
-        if (status) status.textContent = messages.searchUnavailable;
-      });
-    return loading;
+    if (!indexUrl) return;
+
+    let loading = engines.get(indexUrl);
+    if (!loading) {
+      if (status) status.textContent = messages.searchLoading;
+      loading = fetch(indexUrl)
+        .then((response) => {
+          if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
+          return response.json() as Promise<SearchDocument[]>;
+        })
+        .then(createSearch)
+        .catch(() => {
+          engines.delete(indexUrl);
+          if (root?.dataset.searchIndex === indexUrl && status) status.textContent = messages.searchUnavailable;
+          return undefined;
+        });
+      engines.set(indexUrl, loading);
+    }
+
+    const loaded = await loading;
+    // Ignore an index that finished loading after the page switched locale.
+    if (root?.dataset.searchIndex === indexUrl) engine = loaded;
   };
 
   const selectResult = (index: number) => {
@@ -133,17 +144,32 @@ const messages = t(locale);
     input.setAttribute('aria-activedescendant', `search-result-${selectedIndex}`);
   };
 
-  input?.addEventListener('focus', () => {
-    openPanel();
-    void loadIndex().then(renderResults);
-  });
+  const initSearch = () => {
+    messages = t(documentLocale());
+    root = document.querySelector<HTMLElement>('[data-search-root]');
+    input = root?.querySelector<HTMLInputElement>('[data-search-input]');
+    panel = root?.querySelector<HTMLElement>('[data-search-panel]');
+    status = root?.querySelector<HTMLElement>('[data-search-status]');
+    results = root?.querySelector<HTMLUListElement>('[data-search-results]');
+    engine = undefined;
+    selectedIndex = -1;
+    currentDocuments = [];
+    if (!input) return;
 
-  input?.addEventListener('input', () => {
-    openPanel();
-    void loadIndex().then(renderResults);
-  });
+    input.addEventListener('focus', () => {
+      openPanel();
+      void loadIndex().then(renderResults);
+    });
 
-  input?.addEventListener('keydown', (event) => {
+    input.addEventListener('input', () => {
+      openPanel();
+      void loadIndex().then(renderResults);
+    });
+
+    input.addEventListener('keydown', handleInputKeydown);
+  };
+
+  const handleInputKeydown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       selectResult(selectedIndex < 0 ? 0 : selectedIndex + 1);
@@ -153,12 +179,14 @@ const messages = t(locale);
     } else if (event.key === 'Enter' && selectedIndex >= 0) {
       event.preventDefault();
       const selected = currentDocuments[selectedIndex];
-      if (selected) window.location.assign(selected.url);
+      if (selected) void navigate(selected.url);
     } else if (event.key === 'Escape') {
       closePanel();
-      input.blur();
+      input?.blur();
     }
-  });
+  };
+
+  document.addEventListener('astro:page-load', initSearch);
 
   document.addEventListener('keydown', (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {

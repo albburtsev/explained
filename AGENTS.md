@@ -84,7 +84,7 @@ Explained is a content-first knowledge base built from structured Markdown and p
 - Breadcrumbs start with the home link and continue with the course and, on a lesson page, the lesson. Do not add a `Courses` crumb.
 - Keep shared chrome minimal: the header holds the Explained home link, search, the language switch, and the theme control without a `Courses` menu item, and the footer keeps the source link without a build-technology message.
 - Publish English at the existing routes and Russian under the `/ru/` prefix, with the same slugs. Every page, including search, uses the interface strings and content of its language.
-- Place the language switch directly before the theme control. It is a plain text link, `Ru` or `En`, that names the other language and opens the same page in that language.
+- Place the language switch directly before the theme control. It is a plain text link, `Ru` or `En`, that names the other language and opens the same page in that language. Switching swaps the page without a full reload and keeps the reader on the same block of the translation.
 - Preserve existing behavior when changing the interface: routes, Markdown-rendered content, course ordering, curriculum links, previous and next lesson navigation, local search, keyboard interaction, and semantic page landmarks.
 
 ## Project skills

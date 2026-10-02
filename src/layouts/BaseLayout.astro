@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import Search from '../components/Search.astro';
 import { homePath } from '../lib/content';
 import { locales, otherLocale, t, type Locale } from '../lib/i18n';
@@ -27,7 +28,7 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={locale} transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -35,16 +36,23 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
     <meta name="description" content={description} />
     <script is:inline>
       (() => {
-        let theme = 'dark';
-        try {
-          if (localStorage.getItem('explained-theme') === 'light') theme = 'light';
-        } catch {}
+        const applyStoredTheme = () => {
+          let theme = 'dark';
+          try {
+            if (localStorage.getItem('explained-theme') === 'light') theme = 'light';
+          } catch {}
 
-        if (theme === 'light') document.documentElement.dataset.theme = 'light';
-        else delete document.documentElement.dataset.theme;
-        document.documentElement.style.colorScheme = theme;
+          if (theme === 'light') document.documentElement.dataset.theme = 'light';
+          else delete document.documentElement.dataset.theme;
+          document.documentElement.style.colorScheme = theme;
+        };
+
+        applyStoredTheme();
+        // Page swaps replace the root attributes, so restore the theme before the new page paints.
+        document.addEventListener('astro:after-swap', applyStoredTheme);
       })();
     </script>
+    <ClientRouter fallback="swap" />
     <link rel="alternate" hreflang={alternateLocale} href={alternateUrl} />
     <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
     <title>{pageTitle}</title>
@@ -61,6 +69,7 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
         <div class="header-controls">
           <a
             class="locale-toggle"
+            data-locale-switch
             href={alternateUrl}
             hreflang={alternateLocale}
             lang={alternateLocale}
@@ -84,14 +93,11 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
       <a href="https://github.com/albburtsev/explained">{messages.viewSource}</a>
     </footer>
     <script>
-      import { documentLocale, t } from '../lib/i18n';
-
-      const messages = t(documentLocale());
-      const themeToggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+      import { documentLocale, t, type Messages } from '../lib/i18n';
+      import { captureAnchor, highlightBlock, restoreAnchor, type ReadingAnchor } from '../lib/reading-anchor';
 
       const activeTheme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-      const syncThemeToggle = () => {
-        if (!themeToggle) return;
+      const syncThemeToggle = (themeToggle: HTMLButtonElement, messages: Messages) => {
         const nextTheme = activeTheme() === 'light' ? 'dark' : 'light';
         themeToggle.setAttribute(
           'aria-label',
@@ -99,18 +105,23 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
         );
       };
 
-      themeToggle?.addEventListener('click', () => {
-        const nextTheme = activeTheme() === 'light' ? 'dark' : 'light';
-        if (nextTheme === 'light') document.documentElement.dataset.theme = 'light';
-        else delete document.documentElement.dataset.theme;
-        document.documentElement.style.colorScheme = nextTheme;
-        try {
-          localStorage.setItem('explained-theme', nextTheme);
-        } catch {}
-        syncThemeToggle();
-      });
+      const initThemeToggle = (messages: Messages) => {
+        const themeToggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+        if (!themeToggle) return;
 
-      syncThemeToggle();
+        themeToggle.addEventListener('click', () => {
+          const nextTheme = activeTheme() === 'light' ? 'dark' : 'light';
+          if (nextTheme === 'light') document.documentElement.dataset.theme = 'light';
+          else delete document.documentElement.dataset.theme;
+          document.documentElement.style.colorScheme = nextTheme;
+          try {
+            localStorage.setItem('explained-theme', nextTheme);
+          } catch {}
+          syncThemeToggle(themeToggle, messages);
+        });
+
+        syncThemeToggle(themeToggle, messages);
+      };
 
       const fallbackCopyText = (text: string) => {
         const textarea = document.createElement('textarea');
@@ -145,50 +156,84 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
         return fallbackCopyText(text);
       };
 
-      document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
-        if (pre.parentElement?.classList.contains('code-block')) return;
+      const initCodeCopyButtons = (messages: Messages) => {
+        document.querySelectorAll<HTMLPreElement>('.prose pre').forEach((pre) => {
+          if (pre.parentElement?.classList.contains('code-block')) return;
 
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-block';
-        pre.before(wrapper);
-        wrapper.append(pre);
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-block';
+          pre.before(wrapper);
+          wrapper.append(pre);
 
-        const button = document.createElement('button');
-        button.className = 'code-copy-button';
-        button.type = 'button';
-        button.title = messages.copyCode;
-        button.innerHTML = `
-          <svg class="code-copy-icon" aria-hidden="true" viewBox="0 0 24 24">
-            <rect x="8" y="8" width="13" height="13" rx="2"></rect>
-            <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"></path>
-          </svg>
-          <svg class="code-copy-success-icon" aria-hidden="true" viewBox="0 0 24 24">
-            <path d="m5 12 4 4L19 6"></path>
-          </svg>
-          <span class="sr-only" data-copy-status aria-live="polite"></span>
-        `;
-        const initialStatus = button.querySelector<HTMLElement>('[data-copy-status]');
-        if (initialStatus) initialStatus.textContent = messages.copyCode;
-        wrapper.append(button);
+          const button = document.createElement('button');
+          button.className = 'code-copy-button';
+          button.type = 'button';
+          button.title = messages.copyCode;
+          button.innerHTML = `
+            <svg class="code-copy-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="8" y="8" width="13" height="13" rx="2"></rect>
+              <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"></path>
+            </svg>
+            <svg class="code-copy-success-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m5 12 4 4L19 6"></path>
+            </svg>
+            <span class="sr-only" data-copy-status aria-live="polite"></span>
+          `;
+          const initialStatus = button.querySelector<HTMLElement>('[data-copy-status]');
+          if (initialStatus) initialStatus.textContent = messages.copyCode;
+          wrapper.append(button);
 
-        let resetTimer: number | undefined;
-        button.addEventListener('click', async () => {
-          const code = pre.querySelector('code');
-          const copied = await copyText(code?.textContent ?? pre.textContent ?? '');
-          const status = button.querySelector<HTMLElement>('[data-copy-status]');
-          const message = copied ? messages.copied : messages.copyFailed;
+          let resetTimer: number | undefined;
+          button.addEventListener('click', async () => {
+            const code = pre.querySelector('code');
+            const copied = await copyText(code?.textContent ?? pre.textContent ?? '');
+            const status = button.querySelector<HTMLElement>('[data-copy-status]');
+            const message = copied ? messages.copied : messages.copyFailed;
 
-          button.dataset.state = copied ? 'copied' : 'failed';
-          button.title = message;
-          if (status) status.textContent = message;
+            button.dataset.state = copied ? 'copied' : 'failed';
+            button.title = message;
+            if (status) status.textContent = message;
 
-          window.clearTimeout(resetTimer);
-          resetTimer = window.setTimeout(() => {
-            delete button.dataset.state;
-            button.title = messages.copyCode;
-            if (status) status.textContent = messages.copyCode;
-          }, 2000);
+            window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(() => {
+              delete button.dataset.state;
+              button.title = messages.copyCode;
+              if (status) status.textContent = messages.copyCode;
+            }, 2000);
+          });
         });
+      };
+
+      // Runs on the first load and after every client-side page swap.
+      document.addEventListener('astro:page-load', () => {
+        const messages = t(documentLocale());
+        initThemeToggle(messages);
+        initCodeCopyButtons(messages);
+      });
+
+      // The language switch swaps the page for its translation and keeps the reader on the same block.
+      let pendingAnchor: { anchor: ReadingAnchor; highlight: boolean; refocus: boolean } | undefined;
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        pendingAnchor = undefined;
+        const source = event.sourceElement;
+        if (!(source instanceof HTMLElement) || !source.matches('[data-locale-switch]')) return;
+
+        const anchor = captureAnchor();
+        if (anchor) {
+          pendingAnchor = { anchor, highlight: window.scrollY > 0, refocus: document.activeElement === source };
+        }
+      });
+
+      document.addEventListener('astro:after-swap', () => {
+        if (!pendingAnchor) return;
+        const { anchor, highlight, refocus } = pendingAnchor;
+        pendingAnchor = undefined;
+
+        const block = restoreAnchor(anchor);
+        history.replaceState({ ...history.state, scrollX: window.scrollX, scrollY: window.scrollY }, '');
+        if (block && highlight) highlightBlock(block);
+        if (refocus) document.querySelector<HTMLElement>('[data-locale-switch]')?.focus({ preventScroll: true });
       });
     </script>
   </body>
