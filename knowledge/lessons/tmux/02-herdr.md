@@ -30,6 +30,8 @@ Herdr organizes terminals in three levels:
 - A **tab** is one layout within a workspace. Tabs can separate work such as agents, a development server, tests, and logs.
 - A **pane** is a real terminal running a shell, agent, or other process. A pane survives when the client detaches.
 
+![Herdr lists workspaces in the left sidebar. Tabs run across the top, and the selected agents tab is split into two panes.](./herdr/herdr-layout.png)
+
 This resembles the session, window, and pane hierarchy from tmux, but Herdr is its own client-and-server tool. Its background server owns the terminals and process state; the visible terminal UI is an attached client.
 
 ## Work with the mouse
