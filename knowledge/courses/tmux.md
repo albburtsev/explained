@@ -1,28 +1,36 @@
 ---
 slug: tmux
-title: Tmux
+title: Tmux / Herdr / Orca
 catalogOrder: 50
-description: Learn local and remote terminal multiplexing with tmux and use Herdr to keep terminal work and AI coding agents organized and running.
+description: Keep terminal work alive with tmux, supervise AI coding agents with Herdr, and ship code with parallel agents in Orca.
 tags:
   - tmux
   - terminal-multiplexers
   - coding-agents
+  - orca
 lessons:
   - tmux/tmux
   - tmux/herdr
+  - tmux/orca-basics
+  - tmux/orca-settings
+  - tmux/orca-issue-to-merged-pr
+  - tmux/orca-parallel-agents
+  - tmux/orca-browser-and-design-mode
+  - tmux/orca-remote-worktrees
 ---
 
-A terminal multiplexer keeps shells and long-running programs available independently of one terminal window. This course begins with tmux and its session, window, pane, and prefix-key model, then applies the same durable-terminal ideas to Herdr's workspace for coding agents.
+A terminal multiplexer keeps shells and long-running programs available independently of one terminal window. This course begins with tmux and its session, window, pane, and prefix-key model. It then applies the same durable-terminal ideas to Herdr's workspace for coding agents.
 
-You will practice the complete lifecycle of each tool: install it on macOS, start a working session, arrange terminal work, use the essential controls, detach without stopping processes, return later, and close the session deliberately.
+The second part of the course moves to Orca, a desktop app for development with AI coding agents. Orca runs each agent in its own git worktree, so several agents can work in parallel without touching each other's changes. You will take a GitHub task all the way to a merged pull request and learn the tools Orca adds around that flow.
 
-## Install tmux and Herdr on macOS
+## Install tmux, Herdr, and Orca on macOS
 
-If you use Homebrew, install both tools before starting the lessons. Run these commands on each macOS host that will own your sessions:
+If you use Homebrew, install the tools before starting the lessons. Run these commands on each macOS host that will own your sessions:
 
 ```sh
 brew install tmux
 brew install herdr
+brew install --cask stablyai/orca/orca
 ```
 
 Confirm that the tmux command is available:
@@ -37,3 +45,7 @@ Homebrew manages any supporting libraries required by these formulas; do not ins
 
 - How to install and start tmux, work with sessions, windows, and panes, use essential hotkeys, keep remote work alive, and distinguish detach from exit.
 - How to install and operate Herdr, navigate its workspaces, tabs, and panes, supervise multiple AI coding agents, and reconnect to work running on a remote host.
+- How Orca organizes repositories, worktrees, and agents, and how to configure it for GitHub, agents, and workspaces.
+- How to take a GitHub issue to a merged pull request in Orca and review the agent's diff along the way.
+- How to run several agents on one task and coordinate them with the Orca CLI.
+- How to work on UI with Orca's browser and Design Mode, and how to run agents in remote worktrees over SSH.
