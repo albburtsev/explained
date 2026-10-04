@@ -113,6 +113,14 @@ The site is deliberately plain. Courses and lessons appear as typographic rows s
 
 The build emits a static search index containing titles, descriptions, tags, and plain text extracted from Markdown. The browser loads it on first use and performs typo-tolerant fuzzy search locally with Fuse.js. No search service or server is required.
 
+## Offline and installation
+
+Explained is a Progressive Web App. Each locale has a web app manifest (`/explained/manifest.webmanifest`, `/explained/ru/manifest.webmanifest`) describing the same app, so it can be added to the home screen from Safari or Chrome. App icons are rendered from the logo with `sharp` at build time.
+
+The `explained-pwa` integration in `src/integrations/pwa.ts` writes `sw.js` after every production build. The service worker precaches every build file except lesson illustrations, so the whole site, including search, reads offline in both languages. Illustrations go to a separate cache when a page that shows them is opened: the page requests all of its lazy-loaded illustrations, so the opened page stays complete offline, while pages the reader has not opened download nothing in advance. A new deploy removes cached illustrations it no longer contains. Each cache key carries a content hash, so a new deploy downloads only the files that changed. Pages, search indexes, and manifests are fetched network-first and fall back to the cache; hashed assets and icons come from the cache. A page that is not cached shows the localized offline page. The build log reports the size of the offline copy and warns when it grows past 30 MB.
+
+The service worker is registered only in production builds. Use `pnpm build && pnpm preview` to test it locally.
+
 ## Deployment
 
 The `Check and deploy` GitHub Actions workflow validates pull requests. Pushes to `main` additionally publish the generated site to GitHub Pages. In the repository settings, select **GitHub Actions** as the Pages source.
