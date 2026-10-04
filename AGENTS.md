@@ -2,6 +2,8 @@
 
 Explained is a content-first knowledge base built from structured Markdown and published as a static website. Preserve the domain rules below whenever creating or modifying course content or the systems that manage it.
 
+Files in `knowledge/` are the site's main content, not documentation. Commit changes to them as `feat` or `fix`, never `docs`.
+
 ## Course model
 
 - A course is a short, focused introduction for someone new to a subject.
