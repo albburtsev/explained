@@ -40,6 +40,9 @@ const messages = {
     copyCode: 'Copy code',
     copied: 'Copied',
     copyFailed: 'Copy failed',
+    offlineTitle: 'You are offline',
+    offlineBody: 'This page is not saved for offline reading. It may have been published after your last visit. Connect to the internet to open it.',
+    offlineHome: 'Go to the saved courses',
   },
   ru: {
     languageName: 'Русский',
@@ -78,6 +81,9 @@ const messages = {
     copyCode: 'Скопировать код',
     copied: 'Скопировано',
     copyFailed: 'Не удалось скопировать',
+    offlineTitle: 'Нет подключения к сети',
+    offlineBody: 'Эта страница не сохранена для чтения офлайн: возможно, она появилась после вашего последнего визита. Подключитесь к интернету, чтобы её открыть.',
+    offlineHome: 'Перейти к сохранённым курсам',
   },
 } satisfies Record<Locale, unknown>;
 

@@ -1,0 +1,37 @@
+---
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { homePath } from '../../lib/content';
+import { localeStaticPaths, otherLocale, t, type Locale } from '../../lib/i18n';
+import { offlinePath } from '../../lib/pwa';
+
+export function getStaticPaths() {
+  return localeStaticPaths();
+}
+
+interface Props {
+  locale: Locale;
+}
+
+// The service worker shows this page for a page it has not saved while the network is unreachable.
+const { locale } = Astro.props;
+const messages = t(locale);
+const base = import.meta.env.BASE_URL;
+const alternateUrl = offlinePath(base, otherLocale(locale));
+---
+
+<BaseLayout locale={locale} alternateUrl={alternateUrl} title={messages.offlineTitle} noindex>
+  <div class="content-page">
+    <Breadcrumbs label={messages.breadcrumb} items={[
+      { label: messages.home, href: homePath(base, locale) },
+      { label: messages.offlineTitle },
+    ]} />
+    <div class="page-shell">
+      <header class="page-heading">
+        <h1>{messages.offlineTitle}</h1>
+        <p>{messages.offlineBody}</p>
+      </header>
+      <p><a href={homePath(base, locale)}>{messages.offlineHome}</a></p>
+    </div>
+  </div>
+</BaseLayout>

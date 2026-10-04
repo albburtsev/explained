@@ -3,6 +3,7 @@ import { ClientRouter } from 'astro:transitions';
 import Search from '../components/Search.astro';
 import { homePath } from '../lib/content';
 import { locales, otherLocale, t, type Locale } from '../lib/i18n';
+import { appIconPath, themeColors, webManifestPath } from '../lib/pwa';
 import '../styles/global.css';
 
 interface Props {
@@ -11,15 +12,18 @@ interface Props {
   alternateUrl: string;
   title?: string;
   description?: string;
+  /** Keeps a utility page out of search engines. */
+  noindex?: boolean;
 }
 
-const { locale, alternateUrl, title } = Astro.props;
+const { locale, alternateUrl, title, noindex = false } = Astro.props;
 const messages = t(locale);
 const alternateLocale = otherLocale(locale);
 const alternateMessages = t(alternateLocale);
 const description = Astro.props.description ?? messages.siteDescription;
 const pageTitle = title ? `${title} · Explained` : `Explained · ${messages.siteTagline}`;
-const homeUrl = homePath(import.meta.env.BASE_URL, locale);
+const base = import.meta.env.BASE_URL;
+const homeUrl = homePath(base, locale);
 // Every label a header toggle can show in any locale. They share one grid cell,
 // so the widest one fixes the control width and switching never shifts the header.
 const allMessages = locales.map(t);
@@ -34,6 +38,8 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content={themeColors.dark} data-dark={themeColors.dark} data-light={themeColors.light} />
     <script is:inline>
       (() => {
         const applyStoredTheme = () => {
@@ -45,6 +51,8 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
           if (theme === 'light') document.documentElement.dataset.theme = 'light';
           else delete document.documentElement.dataset.theme;
           document.documentElement.style.colorScheme = theme;
+          const themeColor = document.querySelector('meta[name="theme-color"]');
+          if (themeColor) themeColor.content = themeColor.dataset[theme];
         };
 
         applyStoredTheme();
@@ -54,7 +62,10 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
     </script>
     <ClientRouter fallback="swap" />
     <link rel="alternate" hreflang={alternateLocale} href={alternateUrl} />
-    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} type="image/svg+xml" />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={appIconPath(base, 'apple-touch-icon')} />
+    <link rel="manifest" href={webManifestPath(base, locale)} />
+    <meta name="apple-mobile-web-app-title" content="Explained" />
     <title>{pageTitle}</title>
   </head>
   <body>
@@ -96,6 +107,25 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
       import { documentLocale, t, type Messages } from '../lib/i18n';
       import { captureAnchor, highlightBlock, restoreAnchor, type ReadingAnchor } from '../lib/reading-anchor';
 
+      // The service worker exists only in the production build.
+      const hasServiceWorker = import.meta.env.PROD && 'serviceWorker' in navigator;
+      if (hasServiceWorker) {
+        navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {});
+      }
+
+      // The service worker caches an illustration when it is requested. Illustrations load lazily,
+      // so request every one on the opened page to keep the whole page readable offline.
+      const cacheIllustrations = async () => {
+        const sources = [...document.querySelectorAll<HTMLImageElement>('.prose img')]
+          .map((image) => image.currentSrc || image.src)
+          .filter(Boolean);
+        if (!hasServiceWorker || sources.length === 0) return;
+
+        await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) return;
+        await Promise.allSettled(sources.map((source) => fetch(source)));
+      };
+
       const activeTheme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
       const syncThemeToggle = (themeToggle: HTMLButtonElement, messages: Messages) => {
         const nextTheme = activeTheme() === 'light' ? 'dark' : 'light';
@@ -114,6 +144,8 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
           if (nextTheme === 'light') document.documentElement.dataset.theme = 'light';
           else delete document.documentElement.dataset.theme;
           document.documentElement.style.colorScheme = nextTheme;
+          const themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+          if (themeColor) themeColor.content = themeColor.dataset[nextTheme] ?? themeColor.content;
           try {
             localStorage.setItem('explained-theme', nextTheme);
           } catch {}
@@ -209,6 +241,7 @@ const themeSizers = allMessages.flatMap((entry) => [entry.lightTheme, entry.dark
         const messages = t(documentLocale());
         initThemeToggle(messages);
         initCodeCopyButtons(messages);
+        void cacheIllustrations();
       });
 
       // The language switch swaps the page for its translation and keeps the reader on the same block.
