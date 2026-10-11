@@ -16,6 +16,7 @@ lessons:
   - temporal/workflow-messages
   - temporal/testing-temporal-applications
   - temporal/schedules
+  - temporal/patched
 ---
 
 `Temporal` is a durable execution platform for application logic that must survive process crashes, network failures, and long waits. Instead of spreading retry logic, saved progress, and recovery code across your services, you write the business process as a Workflow and let Temporal preserve its state.
